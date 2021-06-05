@@ -1,0 +1,36 @@
+{
+  "name": "meta",
+  "version": "0.5.0",
+  "description": ".meta, neeo RAD platform",
+  "main": "meta.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jac459/meta.git"
+  },
+  "keywords": [
+    "meta",
+    "neeo"
+  ],
+  "author": "jac459",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jac459/meta/issues"
+  },
+  "homepage": "https://github.com/jac459/meta#readme",
+  "dependencies": {
+    "got": "^11.8.2",
+    "http.min": "^2.1.0",
+    "json-rpc2": "^2.0.0",
+    "jsonpath-plus": "^5.0.7",
+    "local-devices": "^3.1.0",
+    "mqtt": "^4.2.6",
+    "multicast-dns": "^7.2.3",
+    "neeo-sdk": "^0.53.8",
+    "socket.io-client": "^4.1.2",
+    "wake_on_lan": "^1.0.0",
+    "xpath": "0.0.32"
+  }
+}
