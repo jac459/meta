@@ -102,3 +102,7 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Meta Specific
+config.js
+resultsDiscovery.json
