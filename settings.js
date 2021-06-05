@@ -17,7 +17,7 @@ var settings =
           'RoomKey':'',
           'DeviceKey':'',
           'ActivatedName':'',
-          'ActivatedLib':'./Activated',
+          'ActivatedLib':'./active',
           'LibraryName':'',
           'UserLibrary':'./Library',
           'CoreLibrary':'Library',
