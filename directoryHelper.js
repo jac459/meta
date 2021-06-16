@@ -164,8 +164,8 @@ class directoryHelper {
           if (indentCommand < allconfigs.commandset.length) {
             cacheList, allconfigs, params, indentCommand
             let commandSet = allconfigs.commandset[indentCommand];
-            let processedCommand = self.controller.assignTo(BROWSEID, commandSet.command, params.browseIdentifier);
-            processedCommand = self.controller.vault.readVariables(processedCommand, deviceId);
+            let processedCommand = self.controller.vault.readVariables(commandSet.command, deviceId);
+            processedCommand = self.controller.assignTo(BROWSEID, processedCommand, params.browseIdentifier);
             metaLog({type:LOG_TYPE.VERBOSE, content:'Final processed Command:', deviceId:deviceId});
             metaLog({type:LOG_TYPE.VERBOSE, content:processedCommand, deviceId:deviceId});
             self.controller.commandProcessor(processedCommand, commandSet.type, deviceId)
@@ -187,15 +187,29 @@ class directoryHelper {
                   else {resultList = tempResultList;}
 
                   resultList.forEach(oneItemResult => { //As in this case, $Result is a table, transform $Result to get every part of the table as one $Result
+                    let action;
+                    if (!rAction) {
+                      action = undefined;
+                    }
+                    else {
+                      let valAction = self.controller.assignTo(RESULT, rAction, oneItemResult);
+                      if (valAction == undefined) {
+                        action = undefined;
+                      }
+                      else {
+                        action = valAction+"$CommandSet="+indentCommand+"$PastQueryValue=" + ((typeof(oneItemResult) == 'string')?oneItemResult:JSON.stringify(oneItemResult));
+                      }
+                    }
                     cacheList.push({
                       'name' : self.controller.assignTo(RESULT, rName, oneItemResult),
                       'image' : self.controller.assignTo(RESULT, rImage, oneItemResult),
                       'itemtype' : rItemType,
                       'label' : self.controller.assignTo(RESULT, rLabel, oneItemResult),
-                      'action' : rAction ? self.controller.assignTo(RESULT, rAction, oneItemResult)+"$CommandSet="+indentCommand+"$PastQueryValue=" + ((typeof(oneItemResult) == 'string')?oneItemResult:JSON.stringify(oneItemResult)) : rAction,
+                      'action' : action,
                       'UI' : rUI ? self.controller.assignTo(RESULT, rUI, oneItemResult):"",
                       'browse' : "$CommandSet="+indentCommand+"$PastQueryValue=" + ((typeof(oneItemResult) == 'string')?oneItemResult:JSON.stringify(oneItemResult))
-                    });
+                    }
+                    );
                   });
                   resolve(self.fillTheList(deviceId, cacheList, allconfigs, params, indentCommand + 1));
                 })

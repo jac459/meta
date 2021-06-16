@@ -75,7 +75,7 @@ module.exports = function controller(driver) {
   this.addListener = function(params) {
     metaLog({type:LOG_TYPE.VERBOSE, content:'addListener - ' + params});
     self.vault.readVariables(params, params.deviceId);
-    let listIndent = self.listeners.findIndex((listen) => {return listen.command == params.command});
+    let listIndent = self.listeners.findIndex((listen) => {return (listen.command == params.command && listen.queryresult == listen.queryresult)});
     if (listIndent < 0) {//the command is new.
       //we add the interrested devices list to this listener. Interrested concept is needed for hub listener where the observer for one device may interest other devices.
       params.interested = [];
@@ -394,7 +394,7 @@ module.exports = function controller(driver) {
         listener.currentInterestCount = listener.currentInterestCount - 1;
         listener.interestedAndUsing = listener.interestedAndUsing.filter(devId => {return devId != deviceId})
         self.assignProcessor(listener.type);
-        processingManager.stopListen(listener);
+        processingManager.stopListen(listener, self.getConnection(listener.type));
       }
       else {
         metaLog({type:LOG_TYPE.WARNING, content:'Trying to stop a listener from the wrong device', deviceId:deviceId});
@@ -551,7 +551,7 @@ module.exports = function controller(driver) {
           if (theButton.command != undefined){ 
             self.actionManager(deviceId, theButton.type, theButton.command, theButton.queryresult, theButton.evaldo, theButton.evalwrite)
             .then(()=>{
-              metaLog({type:LOG_TYPE.VERBOSE, content:'Action done.', deviceId:deviceId});
+              metaLog({type:LOG_TYPE.VERBOSE, content:'Button Action Done.', deviceId:deviceId});
               resolve('Action done.');
             })
             .catch((err) => { 

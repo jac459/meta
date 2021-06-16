@@ -53,8 +53,8 @@ class ProcessingManager {
   startListen(params, deviceId) {
     return this._processor.startListen(params, deviceId);
   }
-  stopListen(params) {
-    return this._processor.stopListen(params);
+  stopListen(listen, connection) {
+    return this._processor.stopListen(listen, connection);
   }
   wrapUp(connection) {
     return new Promise((resolve, reject) => {
@@ -634,14 +634,20 @@ class mqttProcessor {
   } 
   process (params) {
     return new Promise(function (resolve, reject) {
-      metaLog({type:LOG_TYPE.VERBOSE, content:'MQTT Processing'});
-      metaLog({type:LOG_TYPE.VERBOSE, content:params.command});
       if (typeof params.command === 'string') {params.command = JSON.parse(params.command);}
       if (params.command.message) {// here we publish into a topic
+        if (typeof params.command.message === 'object') {params.command.message = JSON.stringify(params.command.message);}
         metaLog({type:LOG_TYPE.VERBOSE, content:'MQTT publishing ' + params.command.message + ' to ' + params.command.topic + ' with options : ' + params.command.options});
         try {
-          params.connection.connector.publish(params.command.topic, params.command.message, (params.command.options ? JSON.parse(params.command.options) : ""));
-          resolve('');
+          params.connection.connector.publish(params.command.topic, params.command.message, (params.command.options ? JSON.parse(params.command.options) : ""), (err) => {
+            if (err) {
+              metaLog({type:LOG_TYPE.ERROR, content:err});
+            }
+            else {
+              metaLog({type:LOG_TYPE.INFO, content:"MQTT Message pushed successfully to : " + params.command.topic});
+            }    
+            resolve('');        
+          });
         }
         catch (err) {
           metaLog({type:LOG_TYPE.ERROR, content:'Meta found an error processing the MQTT command'});
@@ -671,23 +677,31 @@ class mqttProcessor {
   }
   startListen(params, deviceId) {
     return new Promise(function (resolve, reject) {
-      params.connection.connector.subscribe(params.command, (result) => {metaLog({type:LOG_TYPE.VERBOSE, content:'Subscription MQTT : '+ result})});
-      params.connection.connector.on('message', function (topic, message) {
-        if (topic == params.command) {
-          metaLog({type:LOG_TYPE.VERBOSE, content:'message received : ' + message.toString()});
-          params._listenCallback(message.toString(), params.listener, deviceId);
-        }
+        params.connection.connector.subscribe(params.command, (result) => {
+        params.connection.connector.on('message', function (topic, message) {
+          if (topic == params.command) {
+            metaLog({type:LOG_TYPE.VERBOSE, content:'message received : ' + message.toString()});
+            params._listenCallback(message.toString(), params.listener, deviceId);
+          }
+        });
       });
       resolve('');
     });
   }
-  stopListen(params) {
-    metaLog({type:LOG_TYPE.INFO, content:'Stop listening to the MQTT device.'});
-    metaLog(params);
+  stopListen(listen, connection) {
+    connection.connector.unsubscribe(listen.command, (err) => {
+      if (err) {
+        metaLog({type:LOG_TYPE.ERROR, content:err});
+      }
+      else {
+        metaLog({type:LOG_TYPE.INFO, content:"Unsubscribed to : " + listen.command});
+      }
+    })
+
   };
-  wrapUp(connection) {
+  wrapUp() {
     return new Promise(function (resolve, reject) {
-      resolve(connection);
+      resolve();
     });
   };
 }

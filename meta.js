@@ -291,7 +291,8 @@ function instanciationHelper(controller, givenResult, jsonDriver) {
     recontructedDriver = recontructedDriver + tempoResult;
     recontructedDriver = recontructedDriver + slicedDriver[index].split(" DYNAMIK_INST_END")[1];
   }
-  metaLog({type:LOG_TYPE.VERBOSE, content:'recontructedDriver'});
+  metaLog({type:LOG_TYPE.VERBOSE, content:'Driver has been reconstructed.'});
+  metaLog({type:LOG_TYPE.VERBOSE, content:recontructedDriver});
 
   return JSON.parse(controller.vault.readVariables(recontructedDriver, DEFAULT));
 }
@@ -316,7 +317,7 @@ function discoveryDriverPreparator(controller, driver, deviceId) {
       if (driver.discover) {
             controller.vault.retrieveValueFromDataStore("ToInitiate","default").then((ToInitiate)=>{
               if (ToInitiate == undefined) {ToInitiate = true;}
-              metaLog({deviceId: deviceId, type:LOG_TYPE.INFO, content:"ToInitiate" + ToInitiate});
+              metaLog({deviceId: deviceId, type:LOG_TYPE.INFO, content:"ToInitiate " + ToInitiate});
               prepareCommand(controller, driver.discover.initcommandset, deviceId, ToInitiate?0:(driver.discover.initcommandset?driver.discover.initcommandset.length:0)).then(()=> {
               let instanciationTable = [];
               metaLog({deviceId: deviceId, type:LOG_TYPE.INFO, content:"Driver Discovery preparation."});
@@ -487,7 +488,7 @@ function executeDriverCreation (driver, hubController, passedDeviceId) {
 
       //TODO check if this is still usefull
       //if (hubController) {controller.assignDiscoverHubController(hubController)}; //if the device is a discovered device.
-      const theDevice = neeoapi.buildDevice("meta " + driver.name) 
+      const theDevice = neeoapi.buildDevice("meta dev" + driver.name) 
       theDevice.setType(driver.type); 
       theDevice.setDriverVersion(driver.version);
       theDevice.setManufacturer(driver.manufacturer);
@@ -550,76 +551,9 @@ function executeDriverCreation (driver, hubController, passedDeviceId) {
         })
       }
 
-/*
       //DISCOVERY  
       if (driver.discover) {
-        metaLog({deviceId: deviceId, type:LOG_TYPE.INFO, content:'Starting device discovery process.'});
-        theDevice.enableDiscovery(
-          {
-            headerText: driver.discover.welcomeheadertext,
-            description: driver.discover.welcomedescription,
-            enableDynamicDeviceBuilder: true,
-          },
-          (dynamicid) => {
-            return new Promise(function (resolve, reject) {
-                //light caching mecanism
-                metaLog({deviceId: deviceId, type:LOG_TYPE.ERROR, content:dynamicid});
-                metaLog({deviceId: deviceId, type:LOG_TYPE.ERROR, content:"controller name"});
-                metaLog({deviceId: deviceId, type:LOG_TYPE.ERROR, content:controller.name});
-                let currentDrivers = driversCache.find((driv) => {return driv.controller.name == controller.name});
-                metaLog({deviceId: deviceId, type:LOG_TYPE.ERROR, content:currentDrivers});
-                if (dynamicid) {
-                  metaLog({deviceId: deviceId, type:LOG_TYPE.ERROR, content:"test works"});
-                    
-                  if (currentDrivers) {
-                    metaLog({deviceId: deviceId, type:LOG_TYPE.ERROR, content:"currentDrivers"});
-                    let driverToReturn = currentDrivers.find((driver) => {return driver.id == dynamicid});
-                    metaLog({deviceId: deviceId, type:LOG_TYPE.FATAL, content:"USING THE CAAACHE"});
-                    resolve([driverToReturn])
-                  }
-                  else {
-                    discoveryDriverPreparator(controller, driver, deviceId).then((driverList) => {
-                      const formatedTable = [];
-                      discoveredDriverListBuilder(driverList, formatedTable, 0, controller, undefined, driver).then((outputTable) => {
-                        let drivers = {"controller":controller, "devices":[]};
-                        outputTable.forEach((out)=>{drivers.devices.push(out)})
-                        driversCache.push(drivers);
-                        metaLog({deviceId: deviceId, type:LOG_TYPE.ERROR, content:"cache created"});
-                        controller.vault.snapshotDataStore();  
-                        resolve(outputTable); 
-                      })
-                    })
-                  }
-                }
-                else {
-                  metaLog({deviceId: deviceId, type:LOG_TYPE.ERROR, content:"discovery without deviceId"});
-                  if (currentDrivers) {
-                    metaLog({deviceId: deviceId, type:LOG_TYPE.FATAL, content:"cache used globally"});
-                    resolve(currentDrivers);
-                  }
-                  else {
-                      discoveryDriverPreparator(controller, driver, deviceId).then((driverList) => {
-                      const formatedTable = [];
-                      discoveredDriverListBuilder(driverList, formatedTable, 0, controller, undefined, driver).then((outputTable) => {
-                        let drivers = {"controller":controller, "devices":[]};
-                        outputTable.forEach((out)=>{drivers.devices.push(out)})
-                        driversCache.push(drivers);
-                        metaLog({deviceId: deviceId, type:LOG_TYPE.VERBOSE, content:"cache created"});
-                        controller.vault.snapshotDataStore();  
-                        resolve(outputTable); 
-                      })
-                    })
-                  }
-                }
-            })
-            
-          })
-      }
-
-*/
-      //DISCOVERY  
-      if (driver.discover) {
-        metaLog({deviceId: deviceId, type:LOG_TYPE.VERBOSE, content:'Creating discovery process for ' + controller.name});
+        metaLog({deviceId: deviceId, type:LOG_TYPE.WARNING, content:'Creating discovery process for ' + controller.name});
         theDevice.enableDiscovery(
           {
             headerText: driver.discover.welcomeheadertext,
@@ -635,11 +569,12 @@ function executeDriverCreation (driver, hubController, passedDeviceId) {
               if (targetDeviceId) {
                 let ind = controller.discoveredDevices.findIndex(dev => {return dev.id == targetDeviceId});
                 if (ind>=0) {
-                  metaLog({deviceId: deviceId, type:LOG_TYPE.FATAL, content:"DRIVER CACHE USED"});
+                  metaLog({deviceId: deviceId, type:LOG_TYPE.INFO, content:"DRIVER CACHE USED"});
                   formatedTable.push(controller.discoveredDevices[ind]);
-                  resolve(outputTable); 
+                  resolve(formatedTable); 
+                  return;
                 }
-              } 
+              }
               discoveryDriverPreparator(controller, driver, deviceId).then((driverList) => {
                 discoveredDriverListBuilder(driverList, formatedTable, 0, controller, targetDeviceId, driver).then((outputTable) => {
                   outputTable.forEach(output => {if (controller.discoveredDevices.findIndex(dev => {dev.id == output.id})<0) {controller.discoveredDevices.push(output)}});
@@ -856,7 +791,7 @@ function runNeeo () {
     const neeoSettings = {
       brain: config.brainip.toString(),
       port: config.brainport.toString(),
-      name: "meta",
+      name: "meta-dev",
       devices: driverTable
     };
     metaLog({type:LOG_TYPE.INFO, content:"Current directory: " + __dirname});
@@ -885,7 +820,6 @@ function runNeeo () {
     
 
 function enableMQTT (cont, deviceId) {
-
   mqttClient.subscribe(settings.mqtt_topic + cont.name + "/#", () => {});
   mqttClient.on('message', function (topic, value) {
       try {
@@ -964,12 +898,17 @@ getConfig().then(() => {
     mqttClient = mqtt.connect('mqtt://' + settings.mqtt, {clientId:"meta"}); // Always connect to the local mqtt broker
     mqttClient.setMaxListeners(0); //CAREFULL OF MEMORY LEAKS HERE.
     mqttClient.on('connect', () => {
+      metaLog({type:LOG_TYPE.WARNING, content:"Connection to MQTT Broker Successful."});
+    })
+    mqttClient.on('error', (err) => {
+      metaLog({type:LOG_TYPE.FATAL, content:"Issue while connecting to the mqtt broker."});
+      metaLog({type:LOG_TYPE.FATAL, content:err});
+    })
     createDevices()
     .then (() => {
       metaLog({type:LOG_TYPE.WARNING, content:"Connecting to the neeo brain."});
       setupNeeo().then(() => {
        
       })
-    })
-  })
+    })  
 })
