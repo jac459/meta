@@ -42,6 +42,20 @@ class variablesVault {
 
     this.initialiseVault= function(filename) {
       return new Promise(function (resolve, reject) {
+        if (nets.eth0) { //trying to get the LAN address
+          let theNet = nets.eth0.find((net)=>{return (net.family == "IPv4" && !net.internal)});
+          if (theNet) {metaIP = theNet.address}
+        } 
+        if (!metaIP && nets.en0) {//Falback to get the WAN address
+          let theNet = nets.en0.find((net)=>{return (net.family == "IPv4" && !net.internal)});  
+          if (theNet) {metaIP = theNet.address}
+        }
+        if (!metaIP && nets.wlan0) {//Falback to get the WAN address
+          let theNet = nets.wlan0.find((net)=>{return (net.family == "IPv4" && !net.internal)});  
+          if (theNet) {metaIP = theNet.address}
+        }
+        metaLog({type:LOG_TYPE.WARNING, content:"Meta running on Server with IP : " + metaIP});
+
         if (filename) {
           self.dataStore = filename;
             //Initialise the variable to datastore value.
@@ -149,18 +163,22 @@ class variablesVault {
 
     this.retrieveValueFromDataStore = function (name, deviceId) {
       return new Promise(function (resolve, reject) {
-        if (nets.eth0) { //trying to get the LAN address
+      
+        if (nets.eth0) { //trying to get the LAN address for MetaIP variable.
           let theNet = nets.eth0.find((net)=>{return (net.family == "IPv4" && !net.internal)});
           if (theNet) {metaIP = theNet.address}
         } 
+        if (!metaIP && nets.en0) {//Falback to get the WAN address
+          let theNet = nets.en0.find((net)=>{return (net.family == "IPv4" && !net.internal)});  
+          if (theNet) {metaIP = theNet.address}
+        }
         if (!metaIP && nets.wlan0) {//Falback to get the WAN address
           let theNet = nets.wlan0.find((net)=>{return (net.family == "IPv4" && !net.internal)});  
           if (theNet) {metaIP = theNet.address}
         }
-        metaLog({type:LOG_TYPE.INFO, content:"Meta running on Server with IP : " + metaIP});
+        metaLog({type:LOG_TYPE.VERBOSE, content:"Meta running on Server with IP : " + metaIP});
 
-        
-        let internalVariableName = toInternalName(name, deviceId);
+        let internalVariableName = toInternalName(name, deviceId);        
         self.getDataFromDataStore().then((store) => {
           if (store) {
             let valueIndex = store.findIndex((key) => {return key.name == internalVariableName});
