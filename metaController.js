@@ -74,7 +74,12 @@ module.exports = function controller(driver) {
  
   this.addListener = function(params) {
     params.command = self.vault.readVariables(params.command, params.deviceId);
-    params.queryresult = self.vault.readVariables(params.queryresult, params.deviceId);
+    if (Array.isArray(params.queryresult)) {
+      params.queryresult.forEach(qr => {qr = self.vault.readVariables(qr, params.deviceId);})
+    }
+    else {
+      params.queryresult = self.vault.readVariables(params.queryresult, params.deviceId);
+    }
     metaLog({deviceId:params.deviceId, type:LOG_TYPE.VERBOSE, content:'addListener : ' + params.command});
     let listIndent = self.listeners.findIndex((listen) => {return (listen.command == params.command && listen.queryresult == listen.queryresult)});
     if (listIndent < 0) {//the command is new.
@@ -434,23 +439,23 @@ module.exports = function controller(driver) {
           else {
             const result = [];
             if (values[0]) {
-              for (let index = 0; index < values[0].length; index++) {
-                const cell = [];
-                for (let index2 = 0; index2 < values.length; index2++) {
-                  cell.push(values[index2][index]);
+                for (let index = 0; index < values[0].length; index++) {
+                  const cell = [];
+                  for (let index2 = 0; index2 < values.length; index2++) {
+                    cell.push(values[index2][index]);
+                  }
+                  result.push(cell);
                 }
-                result.push(cell);
               }
+              resolve(result);
             }
-            resolve(result);
-          }
-      });
-    }
-    catch (err) {
-      metaLog({type:LOG_TYPE.ERROR, content:'Error during the querryresult processing.', deviceId:deviceId});
-      metaLog({type:LOG_TYPE.ERROR, content:err, deviceId:deviceId});
-      resolve(err);
-    }
+        });
+      }
+      catch (err) {
+        metaLog({type:LOG_TYPE.ERROR, content:'Error during the querryresult processing.', deviceId:deviceId});
+        metaLog({type:LOG_TYPE.ERROR, content:err, deviceId:deviceId});
+        resolve(err);
+      }
     });
   };
   
