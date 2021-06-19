@@ -121,7 +121,7 @@ class directoryHelper {
                 let tiles = [];
                 tiles.push({
                     thumbnailUri: cacheList[i].image,
-                    actionIdentifier: (cacheList[i].action ? cacheList[i].action + "$ListIndex=" + (i-1) : cacheList[i].action), //For support of index
+                    actionIdentifier: (cacheList[i].action ? cacheList[i].action + "$ListIndex=" + (i) : cacheList[i].action), //For support of index
                     uiAction: cacheList[i].UI ? cacheList[i].UI : ''
                 })
                 if ((i+1 < cacheList.length) && (cacheList[i+1].itemtype == 'tile')) {
@@ -140,7 +140,7 @@ class directoryHelper {
                   title: cacheList[i].name,
                   label: cacheList[i].label,
                   thumbnailUri: cacheList[i].image,
-                  actionIdentifier: (cacheList[i].action ? cacheList[i].action + "$ListIndex=" + (i-1) : cacheList[i].action), //For support of index
+                  actionIdentifier: (cacheList[i].action ? cacheList[i].action + "$ListIndex=" + (i) : cacheList[i].action), //For support of index
                   browseIdentifier: cacheList[i].browse,
                   uiAction: cacheList[i].UI ? cacheList[i].UI : ((cacheList[i].action != '' || cacheList[i].action != undefined) ? '' : 'reload'),
                 });
@@ -266,13 +266,11 @@ class directoryHelper {
         if (indexCommand < allCommandSet.length){
           let commandSet = allCommandSet[indexCommand]; 
           self.controller.evalWrite(commandSet.evalwrite, PastQueryValue, deviceId);
-          self.controller.evalDo(commandSet.evaldo, PastQueryValue, deviceId); //Newly added 0.9.9
+          self.controller.evalDo(commandSet.evaldo, PastQueryValue, deviceId); 
           let processedCommand = commandSet.command;
           processedCommand = self.controller.vault.readVariables(processedCommand, deviceId);
+          processedCommand = processedCommand.replace(/\$ListIndex/g, ListIndex); //in order to interpret ListIndex (can't be in the vault)
           processedCommand = self.controller.assignTo(RESULT, processedCommand, PastQueryValue);
-          while (processedCommand != processedCommand.replace("$ListIndex", ListIndex)) { // Manage Index values
-            processedCommand = processedCommand.replace("$ListIndex", ListIndex);
-          } 
           metaLog({type:LOG_TYPE.VERBOSE, content:processedCommand, deviceId:deviceId});
           self.controller.commandProcessor(processedCommand, commandSet.type, deviceId)
             .then((resultC) => {

@@ -73,8 +73,9 @@ module.exports = function controller(driver) {
   };
  
   this.addListener = function(params) {
-    metaLog({type:LOG_TYPE.VERBOSE, content:'addListener - ' + params});
-    self.vault.readVariables(params, params.deviceId);
+    params.command = self.vault.readVariables(params.command, params.deviceId);
+    params.queryresult = self.vault.readVariables(params.queryresult, params.deviceId);
+    metaLog({deviceId:params.deviceId, type:LOG_TYPE.VERBOSE, content:'addListener : ' + params.command});
     let listIndent = self.listeners.findIndex((listen) => {return (listen.command == params.command && listen.queryresult == listen.queryresult)});
     if (listIndent < 0) {//the command is new.
       //we add the interrested devices list to this listener. Interrested concept is needed for hub listener where the observer for one device may interest other devices.

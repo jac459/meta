@@ -1,0 +1,207 @@
+{ "name":"Roon Player",
+    "manufacturer":"Roon",
+    "type":"AUDIO",
+    "version":16,
+    "persistedvariables":{
+      "ToInitiate":false
+    },
+    "discover":{
+      "welcomeheadertext":"Roon Media Player",
+      "welcomedescription":"powered by meta\nby JAC459",
+      "command": {"type":"http-get", "command":"http://$MetaIP:1880/roon/discover", "queryresult":"$.zones.*"}
+    },
+    "template" : {
+      "dynamicname":"DYNAMIK_INST_START DYNAMIK \"Roon - \" + JSON.parse(\"$Result\").display_name DYNAMIK_INST_END",
+      "dynamicid":"DYNAMIK_INST_START DYNAMIK JSON.parse(\"$Result\").zone_id DYNAMIK_INST_END",
+      "variables":{
+        "MyCurrentZone":"DYNAMIK_INST_START DYNAMIK let dz = JSON.stringify(\"$Result\"); dz.substring(1, dz.length-1) DYNAMIK_INST_END",
+        "ZoneId":"DYNAMIK_INST_START DYNAMIK JSON.parse(\"$Result\").zone_id DYNAMIK_INST_END",
+        "Output":"DYNAMIK_INST_START DYNAMIK let op = JSON.stringify(JSON.stringify(JSON.parse(\"$Result\").outputs[0])); op.substring(1, op.length-1) DYNAMIK_INST_END",
+        "VolumePlayed":"",
+        "NodeRedIP":"$MetaIP",
+        "Playing":"",
+        "Queues":[],
+        "QueueId":"",
+        "Duration":"",
+        "Progress":"",
+        "AlbumCoverURI":"",
+        "ArtistCoverURI":"",
+        "BaseImageURL":"https://raw.githubusercontent.com/jac459/meta-roon/main/pics/",
+        "Level1Pic":"",
+        "Level2Pic":"",
+        "Level3Pic":"",
+        "Level4Pic":"",
+        "Level5Pic":"",
+        "Level6Pic":"",
+        "Level7Pic":"",
+        "LevelActionPic":"",
+        "MyListItem":"",
+        "MyState":"",
+        "MyStatus":""
+      },  
+      "images": {
+        "AlbumCover": {
+          "label": "",
+          "size": "large",
+          "listen": "AlbumCoverURI"
+        } 
+      },  
+      "listeners": {
+        "roonStatus": {
+          "type": "mqtt",
+          "command": "meta/roon/status", 
+          "queryresult": "",
+          "evalwrite": [
+            {
+              "variable": "MyStatus",
+              "value": "DYNAMIK let res = JSON.parse(\"$Result\"); if (res.Volume) {let vol = $VolumePlayed; '||'.repeat(vol) + '--'.repeat(Math.round((100-vol)/3))};"
+            }
+          ]
+        },
+        "roonQueue": {
+          "type": "mqtt",
+          "command": "meta/roon/queue", 
+          "queryresult": "",
+          "evalwrite": [
+            {
+              "variable": "Queues",
+              "value": "$Result"
+            }
+          ]
+        },
+        "roonState": {
+          "type": "mqtt",
+          "command": "meta/roon/state", 
+          "queryresult": "$.zones.*",
+          "evalwrite": [
+            {
+              "variable": "MyCurrentZone",
+              "value": "DYNAMIK let cz = JSON.stringify(JSON.parse(\"$Result\").find((zn) => {return zn.zone_id == \"$ZoneId\"})); if (cz) { cz; } else { cz = JSON.stringify($MyCurrentZone); cz; }"
+            },
+            {
+              "variable": "Output",
+              "value": "DYNAMIK let outs = $MyCurrentZone.outputs; let out = JSON.stringify(outs.find((ot) => {return ot.output_id == $Output.output_id})); out;"
+            },
+            {
+              "variable": "MyState",
+              "value": "DYNAMIK if ($MyCurrentZone.now_playing) {let cz = $MyCurrentZone.state + \" - \" + $MyCurrentZone.now_playing.one_line.line1; cz;} else {\"Zone is not playing.\"}"
+            },
+            {
+              "variable": "Playing",
+              "value": "DYNAMIK let p = $MyCurrentZone.state; p == \"playing\";"
+            },
+            {
+              "variable": "VolumePlayed",
+              "value": "DYNAMIK let op = $Output; let vol = Math.round(100*(op.volume.value-op.volume.min)/(op.volume.max-op.volume.min));vol;"
+            },            
+            {
+              "variable": "Duration",
+              "value": "DYNAMIK let dur = $MyCurrentZone.now_playing.length; dur;"
+            },
+            {
+              "variable": "AlbumCoverURI",
+              "value": "DYNAMIK let uri = \"http://$NodeRedIP:1880/roon/image?image_key=\" + $MyCurrentZone.now_playing.image_key; uri;"
+            },
+            {
+              "variable": "Progress",
+              "value": "DYNAMIK let prog = $MyCurrentZone.now_playing.seek_position/$MyCurrentZone.now_playing.length; Math.round(prog*100);"
+            }
+          ]
+        }
+      },
+
+      "labels":{
+          "CurrentStatus" : {"label":".", "actionlisten":"MyStatus", "listen":"MyState"}
+      },
+      "buttons":{
+          "VOLUME UP": {"label":"", "type":"static", "command":"", "evalwrite":[{"variable":"VolumePlayed","value":"DYNAMIK (Number($VolumePlayed)<95)?Number($VolumePlayed)+5:100"}], "evaldo":[{"test":true, "then":"__VOLUMESET", "or":""}]},
+          "VOLUME DOWN": {"label":"", "type":"static", "command":"", "evalwrite":[{"variable":"VolumePlayed","value":"DYNAMIK (Number($VolumePlayed)>5)?Number($VolumePlayed)-5:0"}], "evaldo":[{"test":true, "then":"__VOLUMESET", "or":""}]},
+          "POWER ON": {"label":"", "type":"static", "command":"", "evaldo":[{"test":true,"then":"__INITIALISE", "or":""}]},
+          "POWER OFF": {"label":"", "type":"static", "command":"", "evaldo":[{"test":true,"then":"__CLEANUP", "or":""}]},
+          "CURSOR UP": {"label":"", "type":"static", "command":"", "evaldo":[{"test":true,"then":"PLAY", "or":""}]},
+          "CURSOR LEFT": {"label":"", "type":"static", "command":"", "evaldo":[{"test":true,"then":"PREVIOUS", "or":""}]},
+          "CURSOR RIGHT": {"label":"", "type":"static", "command":"", "evaldo":[{"test":true,"then":"NEXT", "or":""}]},
+          "CURSOR DOWN": {"label":"", "type":"static", "command":"", "evaldo":[{"test":true,"then":"STOP", "or":""}]},
+          "CURSOR ENTER": {"label":"", "type":"static", "command":"", "evaldo":[{"test":true,"then":"PLAY TOGGLE", "or":""}]},
+          "PLAY": {"label":"", "type":"mqtt", "command":"DYNAMIK let dz = JSON.stringify(JSON.stringify($MyCurrentZone));\"{\\\"topic\\\":\\\"meta/roon\\\", \\\"message\\\":\\\"{\\\\\\\"transport\\\\\\\":{\\\\\\\"zone\\\\\\\":\" + dz.substring(1, dz.length-1) + \", \\\\\\\"control\\\\\\\":\\\\\\\"play\\\\\\\"}}\\\"}\""},
+          "PLAY TOGGLE": {"label":"", "type":"mqtt", "command":"DYNAMIK let dz = JSON.stringify(JSON.stringify($MyCurrentZone));\"{\\\"topic\\\":\\\"meta/roon\\\", \\\"message\\\":\\\"{\\\\\\\"transport\\\\\\\":{\\\\\\\"zone\\\\\\\":\" + dz.substring(1, dz.length-1) + \", \\\\\\\"control\\\\\\\":\\\\\\\"playpause\\\\\\\"}}\\\"}\""},
+          "PAUSE": {"label":"", "type":"mqtt", "command":"DYNAMIK let dz = JSON.stringify(JSON.stringify($MyCurrentZone));\"{\\\"topic\\\":\\\"meta/roon\\\", \\\"message\\\":\\\"{\\\\\\\"transport\\\\\\\":{\\\\\\\"zone\\\\\\\":\" + dz.substring(1, dz.length-1) + \", \\\\\\\"control\\\\\\\":\\\\\\\"pause\\\\\\\"}}\\\"}\""},
+          "STOP": {"label":"", "type":"mqtt", "command":"DYNAMIK let dz = JSON.stringify(JSON.stringify($MyCurrentZone));\"{\\\"topic\\\":\\\"meta/roon\\\", \\\"message\\\":\\\"{\\\\\\\"transport\\\\\\\":{\\\\\\\"zone\\\\\\\":\" + dz.substring(1, dz.length-1) + \", \\\\\\\"control\\\\\\\":\\\\\\\"stop\\\\\\\"}}\\\"}\""},
+          "PREVIOUS": {"label":"", "type":"mqtt", "command":"DYNAMIK let dz = JSON.stringify(JSON.stringify($MyCurrentZone));\"{\\\"topic\\\":\\\"meta/roon\\\", \\\"message\\\":\\\"{\\\\\\\"transport\\\\\\\":{\\\\\\\"zone\\\\\\\":\" + dz.substring(1, dz.length-1) + \", \\\\\\\"control\\\\\\\":\\\\\\\"previous\\\\\\\"}}\\\"}\""},
+          "NEXT": {"label":"", "type":"mqtt", "command":"DYNAMIK let dz = JSON.stringify(JSON.stringify($MyCurrentZone));\"{\\\"topic\\\":\\\"meta/roon\\\", \\\"message\\\":\\\"{\\\\\\\"transport\\\\\\\":{\\\\\\\"zone\\\\\\\":\" + dz.substring(1, dz.length-1) + \", \\\\\\\"control\\\\\\\":\\\\\\\"next\\\\\\\"}}\\\"}\""},
+          "__PING_STATE": {"label":"", "type":"mqtt", "command":"{\"topic\":\"meta/roon\", \"message\":\"{\\\"state\\\":true}\"}"},
+          "__VOLUMESET": {"label":"", "type":"mqtt", "command":"DYNAMIK let op = $Output; let vol = Math.round($VolumePlayed/100*(op.volume.max-op.volume.min) + op.volume.min); let mess ={\"transport\":{\"output\":op, \"volume\":vol}}; let toSend = {\"topic\":\"meta/roon\", \"message\":\"\"}; toSend.message = mess; toSend;"},
+          "__PROGRESSSET": {"label":"", "type":"mqtt", "command":"DYNAMIK let prog = Math.round($MyCurrentZone.now_playing.length/100*$Progress);let cz = $MyCurrentZone; let mes = {\"transport\":{\"zone\":\"\", \"seek\":prog}}; mes.transport.zone = cz; let fullMess = {\"topic\":\"meta/roon\", \"message\":\"\"};fullMess.message = mes; fullMess"}
+      },
+      "sliders":{
+        "PROGRESS": {"label":"", "unit" : "%", "listen" : "Progress", "evaldo":[{"test":true, "then":"__PROGRESSSET", "or":""}]},
+        "VOLUME": {"label":"", "unit" : "db", "listen" : "VolumePlayed", "evaldo":[{"test":true, "then":"__VOLUMESET", "or":""}]}
+    },
+      "directories":{
+          "Outputs": {"label":"", 
+            "feeders": {
+              "Outputs":{"label":"", "commandset": [
+                {"type":"static", "command":".", "itemtype":"tile", "itemaction":"", "itemUI":"","itemimage":"$BaseImageURLROON.jpg"},
+                {"type":"static", "command":"$MyCurrentZone", "queryresult":"$.outputs.*", "itemname":"DYNAMIK JSON.parse(\"$Result\").display_name", "itemlabel":"Zone Output", "itemaction":"OutputSet", "itemimage":"$BaseImageURLoutput.jpg"}
+              ]},
+              "OutputSet":{"label":"", "commandset": [{"type":"static", "command":"SResult", "evalwrite":[{"variable":"Output","value":"$Result"}]}]}
+            }
+          },
+          "Queue": {"label":"", 
+            "feeders": {
+              "Queue":  {"label":"Queue list", "commandset": [
+                {"type":"static", "command":".", "itemtype":"tile", "itemaction":"", "itemUI":"","itemimage":"$BaseImageURLqueues.jpg"},
+                {"type":"http-get", "command":"http://$NodeRedIP:1880/roon/queue?queue={\"zoneId\":\"$ZoneId\"}", "queryresult":"$.queue.changes[1].items.*", "itemname":"DYNAMIK JSON.parse(\"$Result\").two_line.line1", "itemlabel":"DYNAMIK JSON.parse(\"$Result\").two_line.line2", "itemimage":"DYNAMIK \"http://$NodeRedIP:1880/roon/image?image_key=\" + JSON.parse(\"$Result\").image_key", "itemaction": "Action", "evalwrite":[{"variable":"QueueId","value":"DYNAMIK JSON.parse(\"$Result\").queue_item_id"}]}
+              ]},
+              "Action":{"label":"Action", "commandset": [
+                {"type":"mqtt", "command":"DYNAMIK let cz = $MyCurrentZone; let mes = {\"transport\":{\"playQueue\":true, \"queueId\":$QueueId}}; mes.transport.zone = cz; let fullMess = {\"topic\":\"meta/roon\", \"message\":\"\"};fullMess.message = mes; fullMess"}
+              ]} 
+            }
+          },
+          "Browse": {"label":"", 
+            "feeders": {
+              "Browse1":{"label":"Browse", "commandset": [
+                {"type":"static", "command":".", "itemtype":"tile", "itemaction":"", "itemUI":"","itemimage":"$BaseImageURLROON.jpg"},
+                {"type":"http-get", "command":"http://$NodeRedIP:1880/roon/browse?browse={\"hierarchy\":\"browse\",\"multi_session_key\":\"$ZoneId\", \"level\":0,\"item_key\":\"$MyListItem\"}", "queryresult":"$.items.*", "itemname":"DYNAMIK JSON.parse(\"$Result\").title", "itemlabel":"DYNAMIK JSON.parse(\"$Result\").subtitle", "itemimage":"DYNAMIK let title = JSON.parse(\"$Result\").title; let url; if (title == \"Library\") {url = \"library.jpg\"};if (title == \"Settings\") {url = \"settings.jpg\"};if (title == \"TIDAL\") {url = \"myTidal.jpg\"};if (title == \"Genres\") {url = \"genres.jpg\"};if (title == \"My Live Radio\") {url = \"radio.jpg\"};if (title == \"Playlists\") {url = \"fav.png\"}; \"$BaseImageURL\" + url;", "itemaction": "DYNAMIK (JSON.parse(\"$Result\").hint == \"action\")?\"Action\":undefined", "evalnext":[{"test":true, "then":"Browse2", "or":""}], "evalwrite":[{"variable":"MyListItem","value":"DYNAMIK JSON.parse(\"$Result\").item_key"}, {"variable":"Level1Pic","value":"DYNAMIK let title = JSON.parse(\"$Result\").title; let url; if (title == \"Library\") {url = \"library.jpg\"};if (title == \"Settings\") {url = \"settings.jpg\"};if (title == \"TIDAL\") {url = \"myTidal.jpg\"};if (title == \"Genres\") {url = \"genres.jpg\"};if (title == \"My Live Radio\") {url = \"radio.jpg\"};if (title == \"Playlists\") {url = \"fav.png\"}; \"$BaseImageURL\" + url;"}]}
+                ]},
+              "Browse2":{"label":"Browse", "commandset": [
+                {"type":"static", "command":".", "itemtype":"tile", "itemaction":"", "itemUI":"","itemimage":"$Level1Pic"},
+                {"type":"http-get", "command":"http://$NodeRedIP:1880/roon/browse?browse={\"hierarchy\":\"browse\",\"multi_session_key\":\"$ZoneId\", \"level\":1,\"item_key\":\"$MyListItem\"}", "queryresult":"$.items[?(@.title!='Search'&&@.title!='Tags'&&@.title!='Search TIDAL')]", "itemname":"DYNAMIK JSON.parse(\"$Result\").title", "itemlabel":"DYNAMIK JSON.parse(\"$Result\").subtitle", "itemimage":"DYNAMIK let title = JSON.parse(\"$Result\").title; let url; if (title == \"Artists\") {url = \"artist.jpg\"};if (title == \"Albums\") {url = \"record.jpg\"};if (title == \"Tracks\") {url = \"wave.jpg\"};if (title == \"Composers\") {url = \"compose.jpg\"}; if (url) {\"$BaseImageURL\" + url} else {\"$Level1Pic\"};", "itemaction": "DYNAMIK (JSON.parse(\"$Result\").hint == \"action\")?\"Action\":undefined", "evalnext":[{"test":"DYNAMIK JSON.parse(\"$Result\").hint == \"list\"", "then":"Browse3", "or":"Actions"}], "evalwrite":[{"variable":"MyListItem","value":"DYNAMIK JSON.parse(\"$Result\").item_key"},{"variable":"Level2Pic","value":"DYNAMIK let title = JSON.parse(\"$Result\").title; let url; if (title == \"Artists\") {url = \"artist.jpg\"};if (title == \"Albums\") {url = \"record.jpg\"};if (title == \"Tracks\") {url = \"wave.jpg\"};if (title == \"Composers\") {url = \"compose.jpg\"}; if (url) {\"$BaseImageURL\" + url} else {\"$Level1Pic\"};"}]}
+              ]},
+              "Browse3":{"label":"Browse", "commandset": [
+                {"type":"static", "command":".", "itemtype":"tile", "itemaction":"", "itemUI":"","itemimage":"$Level2Pic"},
+                {"type":"http-get", "command":"http://$NodeRedIP:1880/roon/browse?browse={\"hierarchy\":\"browse\",\"multi_session_key\":\"$ZoneId\", \"level\":2,\"item_key\":\"$MyListItem\"}", "queryresult":"$.items.*", "itemname":"DYNAMIK JSON.parse(\"$Result\").title", "itemlabel":"DYNAMIK JSON.parse(\"$Result\").subtitle", "itemimage":"DYNAMIK let ik = JSON.parse(\"$Result\").image_key; if (ik) {\"http://$NodeRedIP:1880/roon/image?image_key=\" + ik} else {\"$Level2Pic\"}", "itemaction": "DYNAMIK (JSON.parse(\"$Result\").hint == \"action\")?\"Action\":undefined", "evalnext":[{"test":"DYNAMIK JSON.parse(\"$Result\").hint == \"list\"", "then":"Browse4", "or":"Actions"}], "evalwrite":[{"variable":"MyListItem","value":"DYNAMIK JSON.parse(\"$Result\").item_key"},{"variable":"Level3Pic","value":"DYNAMIK let ik = JSON.parse(\"$Result\").image_key; if (ik) {\"http://$NodeRedIP:1880/roon/image?image_key=\" + ik} else {\"$Level2Pic\"}"}, {"variable":"LevelActionPic","value":"$Level3Pic"}]}
+                ]},
+              "Browse4":{"label":"Browse", "commandset": [
+                {"type":"static", "command":".", "itemtype":"tile", "itemaction":"", "itemUI":"","itemimage":"$Level3Pic"},
+                {"type":"http-get", "command":"http://$NodeRedIP:1880/roon/browse?browse={\"hierarchy\":\"browse\",\"multi_session_key\":\"$ZoneId\", \"level\":3,\"item_key\":\"$MyListItem\"}", "queryresult":"$.items.*", "itemname":"DYNAMIK JSON.parse(\"$Result\").title", "itemlabel":"DYNAMIK JSON.parse(\"$Result\").subtitle", "itemimage":"DYNAMIK let ik = JSON.parse(\"$Result\").image_key; if (ik) {\"http://$NodeRedIP:1880/roon/image?image_key=\" + ik} else {\"$Level3Pic\"}", "itemaction": "DYNAMIK (JSON.parse(\"$Result\").hint == \"action\")?\"Action\":undefined", "evalnext":[{"test":"DYNAMIK JSON.parse(\"$Result\").hint == \"list\"", "then":"Browse5", "or":"Actions"}], "evalwrite":[{"variable":"MyListItem","value":"DYNAMIK JSON.parse(\"$Result\").item_key"},{"variable":"Level4Pic","value":"DYNAMIK let ik = JSON.parse(\"$Result\").image_key; if (ik) {\"http://$NodeRedIP:1880/roon/image?image_key=\" + ik} else {\"$Level3Pic\"}"}, {"variable":"LevelActionPic","value":"$Level4Pic"}]}
+              ]},
+              "Browse5":{"label":"Browse", "commandset": [
+                {"type":"static", "command":".", "itemtype":"tile", "itemaction":"", "itemUI":"","itemimage":"$Level4Pic"},
+                {"type":"http-get", "command":"http://$NodeRedIP:1880/roon/browse?browse={\"hierarchy\":\"browse\",\"multi_session_key\":\"$ZoneId\", \"level\":4,\"item_key\":\"$MyListItem\"}", "queryresult":"$.items.*", "itemname":"DYNAMIK JSON.parse(\"$Result\").title", "itemlabel":"DYNAMIK JSON.parse(\"$Result\").subtitle", "itemimage":"DYNAMIK let ik = JSON.parse(\"$Result\").image_key; if (ik) {\"http://$NodeRedIP:1880/roon/image?image_key=\" + ik} else {\"$Level4Pic\"}", "itemaction": "DYNAMIK (JSON.parse(\"$Result\").hint == \"action\")?\"Action\":undefined", "evalnext":[{"test":"DYNAMIK JSON.parse(\"$Result\").hint == \"list\"", "then":"Browse6", "or":"Actions"}], "evalwrite":[{"variable":"MyListItem","value":"DYNAMIK JSON.parse(\"$Result\").item_key"},{"variable":"Level5Pic","value":"DYNAMIK let ik = JSON.parse(\"$Result\").image_key; if (ik) {\"http://$NodeRedIP:1880/roon/image?image_key=\" + ik} else {\"$Level4Pic\"}"}, {"variable":"LevelActionPic","value":"$Level5Pic"}]}
+              ]},
+              "Browse6":{"label":"Browse", "commandset": [
+                {"type":"static", "command":".", "itemtype":"tile", "itemaction":"", "itemUI":"","itemimage":"$Level5Pic"},
+                {"type":"http-get", "command":"http://$NodeRedIP:1880/roon/browse?browse={\"hierarchy\":\"browse\",\"multi_session_key\":\"$ZoneId\", \"level\":5,\"item_key\":\"$MyListItem\"}", "queryresult":"$.items.*", "itemname":"DYNAMIK JSON.parse(\"$Result\").title", "itemlabel":"DYNAMIK JSON.parse(\"$Result\").subtitle", "itemimage":"DYNAMIK let ik = JSON.parse(\"$Result\").image_key; if (ik) {\"http://$NodeRedIP:1880/roon/image?image_key=\" + ik} else {\"$Level5Pic\"}", "itemaction": "DYNAMIK (JSON.parse(\"$Result\").hint == \"action\")?\"Action\":undefined", "evalnext":[{"test":"DYNAMIK JSON.parse(\"$Result\").hint == \"list\"", "then":"Browse7", "or":"Actions"}], "evalwrite":[{"variable":"MyListItem","value":"DYNAMIK JSON.parse(\"$Result\").item_key"},{"variable":"Level6Pic","value":"DYNAMIK let ik = JSON.parse(\"$Result\").image_key; if (ik) {\"http://$NodeRedIP:1880/roon/image?image_key=\" + ik} else {\"$Level5Pic\"}"}, {"variable":"LevelActionPic","value":"$Level6Pic"}]}
+              ]},
+              "Browse7":{"label":"Browse", "commandset": [
+                {"type":"static", "command":".", "itemtype":"tile", "itemaction":"", "itemUI":"","itemimage":"$Level6Pic"},
+                {"type":"http-get", "command":"http://$NodeRedIP:1880/roon/browse?browse={\"hierarchy\":\"browse\",\"multi_session_key\":\"$ZoneId\", \"level\":6,\"item_key\":\"$MyListItem\"}", "queryresult":"$.items.*", "itemname":"DYNAMIK JSON.parse(\"$Result\").title", "itemlabel":"DYNAMIK JSON.parse(\"$Result\").subtitle", "itemimage":"DYNAMIK let ik = JSON.parse(\"$Result\").image_key; if (ik) {\"http://$NodeRedIP:1880/roon/image?image_key=\" + ik} else {\"$Level6Pic\"}", "itemaction": "DYNAMIK (JSON.parse(\"$Result\").hint == \"action\")?\"Action\":undefined", "evalnext":[{"test":"DYNAMIK JSON.parse(\"$Result\").hint == \"list\"", "then":"Browse8", "or":"Actions"}], "evalwrite":[{"variable":"MyListItem","value":"DYNAMIK JSON.parse(\"$Result\").item_key"},{"variable":"Level7Pic","value":"DYNAMIK let ik = JSON.parse(\"$Result\").image_key; if (ik) {\"http://$NodeRedIP:1880/roon/image?image_key=\" + ik} else {\"$Level6Pic\"}"}, {"variable":"LevelActionPic","value":"$Level7Pic"}]}
+              ]},
+              "Browse8":{"label":"Browse", "commandset": [
+                {"type":"static", "command":".", "itemtype":"tile", "itemaction":"", "itemUI":"","itemimage":"$Level7Pic"},
+                {"type":"http-get", "command":"http://$NodeRedIP:1880/roon/browse?browse={\"hierarchy\":\"browse\",\"multi_session_key\":\"$ZoneId\", \"level\":7,\"item_key\":\"$MyListItem\"}", "queryresult":"$.items.*", "itemname":"DYNAMIK JSON.parse(\"$Result\").title", "itemlabel":"DYNAMIK JSON.parse(\"$Result\").subtitle", "itemimage":"DYNAMIK let ik = JSON.parse(\"$Result\").image_key; if (ik) {\"http://$NodeRedIP:1880/roon/image?image_key=\" + ik} else {\"$Level7Pic\"}", "itemaction": "DYNAMIK (JSON.parse(\"$Result\").hint == \"action\")?\"Action\":undefined", "evalnext":[{"test":"DYNAMIK JSON.parse(\"$Result\").hint == \"list\"", "then":"", "or":"Actions"}], "evalwrite":[{"variable":"MyListItem","value":"DYNAMIK JSON.parse(\"$Result\").item_key"},{"variable":"Level4Pic","value":"DYNAMIK let ik = JSON.parse(\"$Result\").image_key; if (ik) {\"http://$NodeRedIP:1880/roon/image?image_key=\" + ik} else {\"$Level7Pic\"}"}]}
+              ]},
+              "Actions":{"label":"Actions list", "commandset": [
+                {"type":"static", "command":".", "itemtype":"tile", "itemaction":"", "itemUI":"","itemimage":"$LevelActionPic"},
+                {"type":"http-get", "command":"http://$NodeRedIP:1880/roon/browse?browse={\"hierarchy\":\"browse\",\"multi_session_key\":\"$ZoneId\",\"item_key\":\"$MyListItem\"}", "queryresult":"$.items.*", "itemname":"DYNAMIK JSON.parse(\"$Result\").title", "itemlabel":"DYNAMIK JSON.parse(\"$Result\").subtitle", "itemimage":"$LevelActionPic", "itemaction": "DYNAMIK (JSON.parse(\"$Result\").hint == \"action\")?\"Action\":undefined", "evalwrite":[{"variable":"MyListItem","value":"DYNAMIK JSON.parse(\"$Result\").item_key"}]}
+                ]},
+              "Action":{"label":"Action", "commandset": [
+                {"type":"http-get", "command":"http://$NodeRedIP:1880/roon/browse?browse={\"hierarchy\":\"browse\",\"multi_session_key\":\"$ZoneId\",\"item_key\":\"$MyListItem\",\"zone_or_output_id\":\"$ZoneId\"}"}
+                ]                
+              }
+            }
+         }
+      }      
+    }
+  }

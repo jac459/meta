@@ -3,6 +3,10 @@ const fs = require('fs');
 const INTERNALNAMESEPARATOR = '_@_';
 const variablePattern = {'pre':'$','post':''};
 const meta = require(path.join(__dirname,'meta'));
+const { networkInterfaces } = require('os');
+const nets = networkInterfaces();
+var metaIP = undefined; 
+
 
 //LOGGING SETUP AND WRAPPING
 //Disable the NEEO library console warning.
@@ -13,6 +17,9 @@ function metaLog(message) {
   let myMessage = {...initMessage, ...message}
   return metaMessage (myMessage);
 } 
+
+metaLog({type:LOG_TYPE.FATAL, content:"New observer"});
+
 
 function toInternalName(name, deviceId) {
   return (deviceId + INTERNALNAMESEPARATOR + name);
@@ -120,7 +127,8 @@ class variablesVault {
       let preparedResult = inputChain;
       if (inputChain && typeof inputChain === 'string') {
         preparedResult = preparedResult.replace(/\$LocalDevices/g, JSON.stringify(meta.localDevices));
-        preparedResult = preparedResult.replace(/\$NeeoBrainIP/g, meta.neeoBrainIp());
+        preparedResult = preparedResult.replace(/\$NeeoBrainIP/g, meta.neeoBrainIp());metaIP
+        preparedResult = preparedResult.replace(/\$MetaIP/g, metaIP);
       }
       
       if (typeof(preparedResult) == 'object') {
@@ -141,6 +149,17 @@ class variablesVault {
 
     this.retrieveValueFromDataStore = function (name, deviceId) {
       return new Promise(function (resolve, reject) {
+        if (nets.eth0) { //trying to get the LAN address
+          let theNet = nets.eth0.find((net)=>{return (net.family == "IPv4" && !net.internal)});
+          if (theNet) {metaIP = theNet.address}
+        } 
+        if (!metaIP && nets.wlan0) {//Falback to get the WAN address
+          let theNet = nets.wlan0.find((net)=>{return (net.family == "IPv4" && !net.internal)});  
+          if (theNet) {metaIP = theNet.address}
+        }
+        metaLog({type:LOG_TYPE.INFO, content:"Meta running on Server with IP : " + metaIP});
+
+        
         let internalVariableName = toInternalName(name, deviceId);
         self.getDataFromDataStore().then((store) => {
           if (store) {
