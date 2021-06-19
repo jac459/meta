@@ -10,11 +10,11 @@
  ### 1 - Go to the folder where you want to install the package
  ### 2 - download and unzip the package: (if you already use meta, don't forget to save your drivers and copy back in the "active" directory)
  ```
- wget https://github.com/jac459/meta/archive/refs/tags/0.9.1.zip
- unzip 0.9.1.zip
- mv meta-0.9.1/* .
- rm 0.9.1.zip
- rm -r meta-0.9.1 
+ wget https://github.com/jac459/meta/archive/refs/tags/0.9.2.zip
+ unzip 0.9.2.zip
+ mv meta-0.9.2/* .
+ rm 0.9.2.zip
+ rm -r meta-0.9.2 
   ```
  Note: From macOs, you may need to install wget first using : brew install wget
  ### 3 - install the driver
