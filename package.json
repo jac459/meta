@@ -1,6 +1,6 @@
 {
   "name": "meta",
-  "version": "0.9.0",
+  "version": "0.9.5",
   "description": ".meta, neeo RAD platform",
   "main": "meta.js",
   "scripts": {
@@ -12,6 +12,10 @@
   },
   "keywords": [
     "meta",
+    "roon",
+    "hue",
+    "yamaha",
+    "broadlink",
     "neeo"
   ],
   "author": "jac459",

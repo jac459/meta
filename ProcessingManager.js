@@ -313,11 +313,7 @@ class socketIOProcessor {
   }
   wrapUp(connection) {
     return new Promise(function (resolve, reject) {
-      if (connection.connector != "" && connection.connector != undefined) {
-        connection.toConnect = false;
-        connection.connector.close();
-      }
-      resolve(connection);
+      resolve();
     });
   }
 }
@@ -340,7 +336,9 @@ class webSocketProcessor {
   }
   process(params) {
     return new Promise(function (resolve, reject) {
+      metaLog({type:LOG_TYPE.ERROR, content:params});
       if (typeof (params.command) == 'string') { params.command = JSON.parse(params.command); }
+      metaLog({type:LOG_TYPE.ERROR, content:params});
       if (params.command.call) {
         params.connection.connector.emit(params.command.call, params.command.message);
         resolve('');
