@@ -11,10 +11,11 @@ const { parserXMLString, xmldom } = require("./metaController");
 const got = require('got');
 const settings = require(path.join(__dirname,'settings'));
 const { connect } = require("socket.io-client");
+
 //LOGGING SETUP AND WRAPPING
 //Disable the NEEO library console warning.
 const { metaMessage, LOG_TYPE } = require("./metaMessage");
-//const { resolve } = require("@jac459/metadriver/node_modules/any-promise");
+const { startsWith } = require("lodash");
 console.error = console.info = console.debug = console.warn = console.trace = console.dir = console.dirxml = console.group = console.groupEnd = console.time = console.timeEnd = console.assert = console.profile = function() {};
 function metaLog(message) {
   let initMessage = { component:'processingManager', type:LOG_TYPE.INFO, content:'', deviceId: null };
@@ -241,6 +242,86 @@ class httpgetProcessor {
     }
 }
 exports.httpgetProcessor = httpgetProcessor;
+class socketIOProcessor {
+  initiate(connection) {
+    return new Promise(function (resolve, reject) {
+      try {
+        connection.toConnect = true;
+        if (connection.connector != "" && connection.connector != undefined) {
+          connection.connector.close();
+        } //to avoid opening multiple
+        
+        connection.connector = io(connection.descriptor.startsWith('http')?connection.descriptor:"http://"+connection.descriptor, { jsonp: false, transports: ['websocket'] });
+        connection.connector.on("connect", () => {
+          metaLog({type:LOG_TYPE.INFO, content:"socketIO connected on " + connection.descriptor});
+        });
+        connection.connector.on("disconnect", () => {
+          metaLog({type:LOG_TYPE.INFO, content:"socketIO disconnected from " + connection.descriptor});
+          if (connection.toConnect) {
+            connection.connector.connect();
+          }
+        });
+        connection.connector.on("connect_error", (err) => {
+          metaLog({type:LOG_TYPE.ERROR, content:"Connection error with socketIO - " + connection.descriptor});
+          metaLog({type:LOG_TYPE.ERROR, content:err});
+        });
+        connection.connector.connect();
+        //connection.connector.connect();
+        resolve(connection);
+      }
+      catch (err) {
+        metaLog({type:LOG_TYPE.ERROR, content:'Error while intenting connection to the target device.'});
+        metaLog({type:LOG_TYPE.ERROR, content:err});
+      }
+    }); //to avoid opening multiple
+  }
+  process(params) {
+    return new Promise(function (resolve, reject) {
+      if (typeof (params.command) == 'string') { params.command = JSON.parse(params.command); }
+      if (params.command.call) {
+        params.connection.connector.emit(params.command.call, params.command.message);
+        resolve('');
+      }
+    });
+  }
+  query(params) {
+    return new Promise(function (resolve, reject) {
+      try {
+        if (params.query) {
+          resolve(JSONPath(params.query, params.data));
+        }
+        else {
+          resolve(params.data);
+        }
+      }
+      catch (err) {
+        metaLog({type:LOG_TYPE.ERROR, content:err});
+      }
+    });
+  }
+  startListen(params, deviceId) {
+    return new Promise(function (resolve, reject) {
+      params.connection.connector.on(params.command, (result) => { params._listenCallback(result, params.listener, deviceId); });
+      resolve('');
+    });
+  }
+  stopListen(connection) {
+    if (connection.connector != "" && connection.connector != undefined) {
+      connection.toConnect = false;
+      connection.connector.close();
+    }
+  }
+  wrapUp(connection) {
+    return new Promise(function (resolve, reject) {
+      if (connection.connector != "" && connection.connector != undefined) {
+        connection.toConnect = false;
+        connection.connector.close();
+      }
+      resolve(connection);
+    });
+  }
+}
+exports.socketIOProcessor = socketIOProcessor;
 class webSocketProcessor {
   initiate(connection) {
     return new Promise(function (resolve, reject) {

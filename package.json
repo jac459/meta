@@ -29,7 +29,7 @@
     "mqtt": "^4.2.6",
     "multicast-dns": "^7.2.3",
     "neeo-sdk": "^0.53.8",
-    "socket.io-client": "^4.1.2",
+    "socket.io-client": "2.4.0",
     "wake_on_lan": "^1.0.0",
     "xpath": "0.0.32"
   }

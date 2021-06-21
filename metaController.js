@@ -22,10 +22,11 @@ const STATIC = 'static';
 const CLI = 'cli';
 const REPL = 'repl';
 const WEBSOCKET = 'webSocket';
+const SOCKETIO = 'socketIO';
 const JSONTCP = 'jsontcp';
 const MQTT = 'mqtt';
 const WOL = 'wol';
-const { ProcessingManager, httpgetProcessor, httprestProcessor, httpgetSoapProcessor, httppostProcessor, cliProcessor, staticProcessor, webSocketProcessor, jsontcpProcessor, mqttProcessor, replProcessor } = require('./ProcessingManager');
+const { ProcessingManager, httpgetProcessor, httprestProcessor, httpgetSoapProcessor, httppostProcessor, cliProcessor, staticProcessor, webSocketProcessor, jsontcpProcessor, mqttProcessor, socketIOProcessor, replProcessor } = require('./ProcessingManager');
 const { metaMessage, LOG_TYPE } = require("./metaMessage");
 
 const processingManager = new ProcessingManager();
@@ -35,6 +36,7 @@ const myHttppostProcessor = new httppostProcessor();
 const myCliProcessor = new cliProcessor();
 const myStaticProcessor = new staticProcessor();
 const myWebSocketProcessor = new webSocketProcessor();
+const mySocketIOProcessor = new socketIOProcessor();
 const myJsontcpProcessor = new jsontcpProcessor();
 const myMqttProcessor = new mqttProcessor();
 const myReplProcessor = new replProcessor();
@@ -80,8 +82,16 @@ module.exports = function controller(driver) {
     else {
       params.queryresult = self.vault.readVariables(params.queryresult, params.deviceId);
     }
-    metaLog({deviceId:params.deviceId, type:LOG_TYPE.VERBOSE, content:'addListener : ' + params.command});
-    let listIndent = self.listeners.findIndex((listen) => {return (listen.command == params.command && listen.queryresult == listen.queryresult)});
+    let listIndent;
+    if (params.isHub == false) { //if not a Hub, all device have to listen. 
+      metaLog({deviceId:params.deviceId, type:LOG_TYPE.VERBOSE, content:'addListener : ' + params.command});
+      listIndent = self.listeners.findIndex((listen) => {return (listen.command == params.command && listen.deviceId == params.deviceId)});
+    } 
+    else {
+      metaLog({deviceId:params.deviceId, type:LOG_TYPE.VERBOSE, content:'addListener : ' + params.command});
+      listIndent = self.listeners.findIndex((listen) => {return (listen.command == params.command)});
+    }
+
     if (listIndent < 0) {//the command is new.
       //we add the interrested devices list to this listener. Interrested concept is needed for hub listener where the observer for one device may interest other devices.
       params.interested = [];
@@ -125,7 +135,7 @@ module.exports = function controller(driver) {
   }
 
   this.addConnection = function(params) {
-    metaLog({type:LOG_TYPE.VERBOSE, content:'addConnection - ' + params});
+    metaLog({type:LOG_TYPE.VERBOSE, content:'addConnection - ' + params.descriptor});
     self.connectionH.push(params);
   };
 
@@ -283,12 +293,14 @@ module.exports = function controller(driver) {
 
   this.reInitConnectionsValues = function(deviceId) {//it is to make sure that all variable have been interpreted after the register process
     self.connectionH.forEach(element => {
-      element.descriptor = self.vault.readVariables(element.descriptor, deviceId); 
-     });
+      if (element.deviceId == deviceId) {
+        element.descriptor = self.vault.readVariables(element.descriptor, deviceId); 
+      }
+    });
   };
 
-  this.getConnection = function(commandtype) {
-    return self.connectionH[self.connectionH.findIndex((item) => { return (item.name==commandtype); })];
+  this.getConnection = function(commandtype, deviceId) {
+    return self.connectionH[self.connectionH.findIndex((item) => { return (item.name==commandtype && item.deviceId==deviceId); })];
   };
 
   this.assignProcessor = function(commandtype) {
@@ -313,6 +325,9 @@ module.exports = function controller(driver) {
     else if (commandtype == WEBSOCKET) {
       processingManager.processor = myWebSocketProcessor;
     }
+    else if (commandtype == SOCKETIO) {
+      processingManager.processor = mySocketIOProcessor;
+    }
     else if (commandtype == JSONTCP) {
       processingManager.processor = myJsontcpProcessor;
     }
@@ -325,10 +340,10 @@ module.exports = function controller(driver) {
     else {metaLog({type:LOG_TYPE.ERROR, content:'Error in meta settings: The commandtype to process is not defined: ' + commandtype, deviceId:deviceId});}
   };
 
-  this.initiateProcessor = function(commandtype) { // Initiate communication protocoles
+  this.initiateProcessor = function(commandtype, deviceId) { // Initiate communication protocoles
     return new Promise(function (resolve, reject) {
       self.assignProcessor(commandtype); //to get the correct processing manager.
-      processingManager.initiate(self.getConnection(commandtype))
+      processingManager.initiate(self.getConnection(commandtype, deviceId))
         .then((result) => {
           resolve(result);
         })
@@ -344,7 +359,7 @@ module.exports = function controller(driver) {
     return new Promise(function (resolve, reject) {
 
       self.assignProcessor(commandtype); //to get the correct processing manager.
-      processingManager.wrapUp(self.getConnection(commandtype))
+      processingManager.wrapUp(self.getConnection(commandtype, deviceId))
         .then((result) => {
           resolve(result);
         })
@@ -357,7 +372,7 @@ module.exports = function controller(driver) {
     return new Promise(function (resolve, reject) {
       try {
         self.assignProcessor(commandtype);
-        const connection = self.getConnection(commandtype);
+        const connection = self.getConnection(commandtype, deviceId);
         command = self.vault.readVariables(command, deviceId);
         command = self.assignTo(RESULT, command, '');
         const params = {'command' : command, 'connection' : connection};
@@ -370,7 +385,8 @@ module.exports = function controller(driver) {
           .catch((err) => {reject (err);});
       }
       catch (err) {
-        metaLog({type:LOG_TYPE.VERBOSE, content:'Error when executing the cmmand: '+command, deviceId:deviceId});
+        metaLog({type:LOG_TYPE.VERBOSE, content:'Error when executing the command:', deviceId:deviceId});
+        metaLog({type:LOG_TYPE.VERBOSE, content:command, deviceId:deviceId});
         metaLog({type:LOG_TYPE.VERBOSE, content:err, deviceId:deviceId});
       } 
     })  
@@ -381,7 +397,7 @@ module.exports = function controller(driver) {
 
       self.assignProcessor(commandtype);
       //TODO Replace by let
-      const connection = self.getConnection(commandtype);
+      const connection = self.getConnection(commandtype, deviceId);
       
       command = self.vault.readVariables(command, deviceId);
       let params = {'command' : command, 'listener' : listener, '_listenCallback' : self.onListenExecute, 'connection' : connection};
@@ -400,7 +416,7 @@ module.exports = function controller(driver) {
         listener.currentInterestCount = listener.currentInterestCount - 1;
         listener.interestedAndUsing = listener.interestedAndUsing.filter(devId => {return devId != deviceId})
         self.assignProcessor(listener.type);
-        processingManager.stopListen(listener, self.getConnection(listener.type));
+        processingManager.stopListen(listener, self.getConnection(listener.type, deviceId));
       }
       else {
         metaLog({type:LOG_TYPE.WARNING, content:'Trying to stop a listener from the wrong device', deviceId:deviceId});
@@ -516,7 +532,7 @@ module.exports = function controller(driver) {
     self.sensorH.forEach((helper) => {if (helper.deviceId == deviceId) {helper.initialise(deviceId);}});//No need to cleanup as double addition is protected
 
     self.connectionH.forEach(connection => {//open all driver connections type
-      self.initiateProcessor(connection.name);
+      self.initiateProcessor(connection.name, deviceId);
     });
     metaLog({type:LOG_TYPE.VERBOSE, content:self.listeners, deviceId:deviceId});
     self.listeners.forEach((listener) => {

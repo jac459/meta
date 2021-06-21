@@ -63,66 +63,92 @@ function networkDiscovery() {
     });
 
     //multicast-dns
+    let delayWrite = undefined; //Timer to avoid writting too much on the drive.
     mdns.on('response', function(response) {
       let myObjectPTR, myObjectIP, myObjectMac;
-      let myName, myShortName, myIP, myMAC = undefined
+      let myName, myShortName, myIP, myMAC, myPort = undefined
       if (response.additionals) {
-        myObjectPTR = response.answers.find((answer) => {return answer.type == 'PTR'});
+        myObjectPTR = response.additionals.find((answer) => {return answer.type == 'PTR'});
         if (myObjectPTR && myObjectPTR.data) {
           myName = myName?myName:myObjectPTR.data; 
         };
         if (myObjectPTR && myObjectPTR.name) {
           myShortName = myShortName?myShortName:myObjectPTR.name; 
         };
+        myObjectPTR = response.additionals.find((answer) => {return (answer.type == 'SRV')});
+          if (myObjectPTR && myObjectPTR.data) {
+            myPort = myPort?myPort:myObjectPTR.data.port; 
+          };
+          if (myObjectPTR && myObjectPTR.name) {
+            myShortName = myShortName?myShortName:myObjectPTR.name; 
+          };
         myObjectIP = response.additionals.find((answer) => {return answer.type == 'A'});
-        if (myObjectIP && myObjectIP.data) {myIP = myObjectIP.data};
-        myObjectMac = response.additionals.find((answer) => {return answer.type == 'AAA'});
-        if (myObjectMac && myObjectMac.data) {myMac = myObjectMac.data};
+          if (myObjectIP && myObjectIP.data) {myIP = myObjectIP.data};
+          myObjectMac = response.additionals.find((answer) => {return answer.type == 'AAA'});
+          if (myObjectMac && myObjectMac.data) {myMac = myObjectMac.data};
       }  
       if (response.authorities) {
-        myObjectPTR = response.answers.find((answer) => {return answer.type == 'PTR'});
-        if (myObjectPTR && myObjectPTR.data) {
-          myName = myName?myName:myObjectPTR.data; 
-        };
-        if (myObjectPTR && myObjectPTR.name) {
-          myShortName = myShortName?myShortName:myObjectPTR.name; 
-        };
+        myObjectPTR = response.authorities.find((answer) => {return answer.type == 'PTR'});
+          if (myObjectPTR && myObjectPTR.data) {
+            myName = myName?myName:myObjectPTR.data; 
+          };
+          if (myObjectPTR && myObjectPTR.name) {
+            myShortName = myShortName?myShortName:myObjectPTR.name; 
+          };
+        myObjectPTR = response.authorities.find((answer) => {return (answer.type == 'SRV')});
+          if (myObjectPTR && myObjectPTR.data) {
+            myPort = myPort?myPort:myObjectPTR.data.port; 
+          };
+          if (myObjectPTR && myObjectPTR.name) {
+            myShortName = myShortName?myShortName:myObjectPTR.name; 
+          };
         myObjectIP = response.authorities.find((answer) => {return answer.type == 'A'});
-        if (myObjectIP && myObjectIP.data) {myIP = myObjectIP.data};
-        myObjectMac = response.authorities.find((answer) => {return answer.type == 'AAA'});
-        if (myObjectMac && myObjectMac.data) {myMac = myObjectMac.data};
-      }
+          if (myObjectIP && myObjectIP.data) {myIP = myObjectIP.data};
+          myObjectMac = response.authorities.find((answer) => {return answer.type == 'AAA'});
+          if (myObjectMac && myObjectMac.data) {myMac = myObjectMac.data};
+        }
       if (response.answers) {
-        myObjectPTR = response.answers.find((answer) => {return answer.type == 'PTR'});
-        if (myObjectPTR && myObjectPTR.data) {
-          myName = myName?myName:myObjectPTR.data; 
-        };
-        if (myObjectPTR && myObjectPTR.name) {
-          myShortName = myShortName?myShortName:myObjectPTR.name; 
-        };
+        myObjectPTR = response.answers.find((answer) => {return (answer.type == 'PTR')});
+          if (myObjectPTR && myObjectPTR.data) {
+            myName = myName?myName:myObjectPTR.data; 
+          };
+          if (myObjectPTR && myObjectPTR.name) {
+            myShortName = myShortName?myShortName:myObjectPTR.name; 
+          };
+        myObjectPTR = response.answers.find((answer) => {return (answer.type == 'SRV')});
+          if (myObjectPTR && myObjectPTR.data) {
+            myPort = myPort?myPort:myObjectPTR.data.port; 
+          };
+          if (myObjectPTR && myObjectPTR.name) {
+            myShortName = myShortName?myShortName:myObjectPTR.name; 
+          };
         myObjectIP = response.answers.find((answer) => {return answer.type == 'A'});
-        if (myObjectIP && myObjectIP.data) {myIP = myObjectIP.data};
-        myObjectMac = response.answers.find((answer) => {return answer.type == 'AAA'});
-        if (myObjectMac && myObjectMac.data) {myMac = myObjectMac.data};
-      }
-
-      if (localDevices.findIndex((device)=>{return device.name == myName})<0) {
-        metaLog({type:LOG_TYPE.INFO, content:"New device discovered on the network with name " + myName + ". Please wait 10 min (from driver start) for full discovery and caching in your disk."});
-        localDevices.push({"name":myName,"ip":myIP,"mac":myMAC, "short":myShortName})
+          if (myObjectIP && myObjectIP.data) {myIP = myObjectIP.data};
+          myObjectMac = response.answers.find((answer) => {return answer.type == 'AAA'});
+          if (myObjectMac && myObjectMac.data) {myMac = myObjectMac.data};
+        }
+      
+      if (localDevices.findIndex((device)=>{return (device.name == myName && device.ip == myIP&& device.port == myPort)})<0) {
+        localDevices.push({"name":myName,"ip":myIP,"mac":myMAC, "short":myShortName, "port":myPort});
+        if (delayWrite == undefined) {//In order to be gentle on storage.
+          delayWrite = setTimeout(() => {
+            fs.writeFile(discoveryBuffer, JSON.stringify(localDevices), err => {
+              if (err) {
+                metaLog({type:LOG_TYPE.ERROR, content:"Error writing the discovery file. " + err});
+                } else {
+                  metaLog({type:LOG_TYPE.WARNING, content:"Discovery updated"});
+                }
+            })
+            delayWrite = undefined;
+          }, 10000);
+        }
       }
     })
 
     setTimeout(() => {
       metaLog({type:LOG_TYPE.INFO, content:"stopping discovery process."});
       mdns.destroy();
-      fs.writeFile(discoveryBuffer, JSON.stringify(localDevices), err => {
-        if (err) {
-          metaLog({type:LOG_TYPE.ERROR, content:"Error writing the discovery file. " + err});
-           } else {
-            metaLog({type:LOG_TYPE.INFO, content:"Discovery updated"});
-          }
-      })
-    }, 600000);
+    }, 3600000);
   }) 
   return null;
 }
@@ -523,18 +549,20 @@ function executeDriverCreation (driver, hubController, passedDeviceId) {
 
       //GET ALL CONNECTIONS
       if (driver.webSocket) {
-        controller.addConnection({"name":"webSocket", "descriptor":driver.webSocket, "connector":""})
+        controller.addConnection({"name":"webSocket", "descriptor":driver.webSocket, "connector":"", "deviceId":deviceId})
+      }
+      if (driver.socketIO) {
+        controller.addConnection({"name":"socketIO", "descriptor":driver.socketIO, "connector":"", "deviceId":deviceId})
       }
       if (driver.jsontcp) {
-        controller.addConnection({"name":"jsontcp", "descriptor":driver.jsontcp, "connector":""})
+        controller.addConnection({"name":"jsontcp", "descriptor":driver.jsontcp, "connector":"", "deviceId":deviceId})
       }
       if (settings.mqtt) {
         metaLog({deviceId: deviceId, type:LOG_TYPE.INFO, content:'Creating the connection MQTT'});
-        controller.addConnection({"name":"mqtt", "descriptor":settings.mqtt, "connector":mqttClient})//early loading
-        //controller.initiateProcessor('mqtt');
+        controller.addConnection({"name":"mqtt", "descriptor":settings.mqtt, "connector":mqttClient, "deviceId":deviceId})//early loading
       }
       if (driver.repl) {
-        controller.addConnection({"name":"repl", "descriptor":driver.repl, "connector":""})
+        controller.addConnection({"name":"repl", "descriptor":driver.repl, "connector":"", "deviceId":deviceId})
       }
     
       //Registration
@@ -595,6 +623,7 @@ function executeDriverCreation (driver, hubController, passedDeviceId) {
           controller.addListener({
               name : prop, 
               deviceId: deviceId,
+              isHub: driver.listeners[prop].isHub,
               interested: [],
               interestedAndUsing: [],              
               type : driver.listeners[prop].type,
