@@ -54,7 +54,7 @@
           "evalwrite": [
             {
               "variable": "MyStatus",
-              "value": "DYNAMIK let res = JSON.parse(\"$Result\"); if (res.Volume) {let vol = $VolumePlayed; '||'.repeat(vol) + '--'.repeat(Math.round((100-vol)/3))};"
+              "value": "DYNAMIK let res = JSON.parse(\"$Result\"); if (res.Volume && (res.Volume.Output.output_id == $Output.output_id)) {let vol = $VolumePlayed; '||'.repeat(vol) + '--'.repeat(Math.round((100-vol)/3))};"
             }
           ]
         },
