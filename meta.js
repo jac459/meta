@@ -514,7 +514,7 @@ function executeDriverCreation (driver, hubController, passedDeviceId) {
 
       //TODO check if this is still usefull
       //if (hubController) {controller.assignDiscoverHubController(hubController)}; //if the device is a discovered device.
-      const theDevice = neeoapi.buildDevice(".meta2 " + driver.name) 
+      const theDevice = neeoapi.buildDevice(settings.driverPrefix + driver.name) 
       theDevice.setType(driver.type); 
       theDevice.setDriverVersion(driver.version);
       theDevice.setManufacturer(driver.manufacturer);
@@ -820,7 +820,7 @@ function runNeeo () {
     const neeoSettings = {
       brain: config.brainip.toString(),
       port: config.brainport.toString(),
-      name: ".meta",
+      name: settings.runtimeName,
       devices: driverTable
     };
     metaLog({type:LOG_TYPE.INFO, content:"Current directory: " + __dirname});
