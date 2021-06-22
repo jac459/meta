@@ -6,6 +6,7 @@
 ##### 2 - Broadlink Driver (learn and send IR codes) - https://www.youtube.com/watch?v=Ub8pFTeWAiU - Specific install instructions:https://github.com/jac459/meta-broadlink 
 ##### 3 - PHilips Hue Driver (as the standard Philips Hue but with color change capability). Instructions here https://github.com/jac459/meta-hue
 ##### 4 - Volumio (Music player) - https://www.youtube.com/watch?v=ybQrpgSK1yM&t=34s - Instructions here https://github.com/jac459/meta-volumio
+##### 5 - Yamaha AVR - Instrutions here https://github.com/jac459/meta-yamahaAVR
   
   
  ## A - How to install
