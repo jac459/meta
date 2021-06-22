@@ -1,5 +1,10 @@
+As I am working quite a lot on this driver nowadays, don't hesitate to supporte me to buy coffee. More coffees help me getting awake longer time and being more productive :-).
+https://www.paypal.me/jac459
+
 # meta
  Drivers development and execution platform for neeo remote (metadriver reloaded)
+You can join the community here: https://discord.gg/3nuUZwXVXA And here (backup): https://t.me/joinchat/NocMDU9RCVP9hSCJxPsCEg
+ 
  
 #### Currently supported drivers:
 ##### 1 - Roon Driver (control your roon music/zones/outputs) - https://www.youtube.com/watch?v=iphGhOKRXJQ -  Specific install instructions: https://github.com/jac459/meta-roon
