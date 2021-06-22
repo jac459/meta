@@ -1,8 +1,6 @@
 # meta
  Drivers development and execution platform for neeo remote (metadriver reloaded)
- 
- 
- 
+  
  ## A - How to install
  
  ### 0 - Prerequisites: You need a few prerequisites that you wont need anymore once done. Please scroll down to prerequisites section
