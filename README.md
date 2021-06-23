@@ -73,7 +73,7 @@ You can now "testrun" the meta by typing:
  ```
 
 This will run the meta in the opened terminal window. The start option '{"LogSeverity":"VERBOSE"}' will give you an awfull lot of logs. \
-You can now go to your NEEO app and search for new devices. As a keyword you can use "meta" to find the related drivers. Also you can install and (test)run a driver if you wish. \
+You can now go to your NEEO app and search for new devices. As a keyword you can use "meta" to find the related device drivers. Also you can install and (test)run a device if you wish. \
 As soon as you close the the terminal window the meta will stop running. Therefore it is recommended to use pm2 for running the driver (chapter 4). \
 If you need to run the meta in the terminal for some reason you can type (please make sure you are not running it in pm2 at the same time):
  ```
@@ -112,7 +112,7 @@ Next we make pm2 restart automatically after rebooting the pi. This will start p
 
 You are done. 
 
-The meta will now automatically restart after rebooting the pi. You can go to your NEEO app to search for new devices. As a keyword you can use "meta" to find the related drivers.
+The meta will now automatically restart after rebooting the pi. You can go to your NEEO app to search for new devices. As a keyword you can use "meta" to find the related device drivers.
 
 
 #### Some additional pm2 Commands to help you out in special Conditions
