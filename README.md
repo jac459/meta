@@ -115,6 +115,10 @@ The meta will now automatically restart after rebooting the pi. You can go to yo
 
 
 ##### Some additional pm2 Commands to help you out in special Conditions
+List all processes in pm2 (like a "Taskmanager"):
+ ```
+ pm2 list
+ ```
 Restart the meta process in pm2:
  ```
  pm2 restart meta
