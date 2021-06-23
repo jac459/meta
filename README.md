@@ -1,23 +1,23 @@
-As I am working quite a lot on this driver nowadays, don't hesitate to supporte me to buy coffee. More coffees help me getting awake longer time and being more productive :-).
+As I am working quite a lot on this driver nowadays, don't hesitate to supporte me to buy coffee. More coffees help me getting awake longer time and being more productive :-). \
 https://www.paypal.me/jac459
 
 # meta
 Drivers development and execution platform for neeo remote (metadriver reloaded)
-You can join the community..
-..on Discord: https://discord.gg/3nuUZwXVXA 
+You can join the community.. \
+..on Discord: https://discord.gg/3nuUZwXVXA \
 ..or on Telegram (backup): https://t.me/joinchat/NocMDU9RCVP9hSCJxPsCEg
  
 #### Currently supported Drivers:
 ##### 1 - Roon Driver (control your roon music/zones/outputs)
-Demo: https://www.youtube.com/watch?v=iphGhOKRXJQ
+Demo: https://www.youtube.com/watch?v=iphGhOKRXJQ \
 Specific install instructions: https://github.com/jac459/meta-roon
 ##### 2 - Broadlink Driver (learn and send IR codes)
-Demo: https://www.youtube.com/watch?v=Ub8pFTeWAiU
+Demo: https://www.youtube.com/watch?v=Ub8pFTeWAiU \
 Specific install instructions: https://github.com/jac459/meta-broadlink 
 ##### 3 - Philips Hue Driver (as the standard Philips Hue but with color change capability)
 Instructions: https://github.com/jac459/meta-hue
 ##### 4 - Volumio (Music player)
-Demo: https://www.youtube.com/watch?v=ybQrpgSK1yM&t=34
+Demo: https://www.youtube.com/watch?v=ybQrpgSK1yM&t=34 \
 Instructions: https://github.com/jac459/meta-volumio
 ##### 5 - Yamaha AVR
 Instrutions: https://github.com/jac459/meta-yamahaAVR
@@ -30,10 +30,11 @@ All following install-processes are done by terminal commands. If you have a dis
 The meta needs a few prerequisites for operating. These have to be installed to your pi. Please scroll down to prerequisites section.
  
 ### 1 - Browse to the Folder where you want to install the Package
-For convinience it is recommended to install the meta driver to the folder /home/pi. This is the home folder. If you want to install to a different location you can type "cd" followed by the path. If you want to install to the home folder you dont need specifically browse to that location after opening the terminal. This is because the home folder is the default location.
+For convinience it is recommended to install the meta driver to the folder /home/pi. This is the home folder. If you want to install to a different location you can type "cd" followed by the path. \
+Howewer if you want to install to the home folder you dont need specifically browse to that location after opening the terminal. This is because the home folder is the default location.
   
 ### 2 - Download and unzip the Package
-Now use the command "wget" followed by the link to the latest verison to download the package. This will download the .zip to your home folder.
+Now use the command "wget" followed by the link to the latest verison to download the package. This will download the .zip to your home folder. \
 Note: From macOs, you may need to install wget first using: brew install wget
 
  ```
@@ -56,7 +57,7 @@ The downloaded .zip can now be removed with the following command:
  ```
 
 ### 2a - Updating the meta Packages
-If you already use meta and you have custom drivers in the active folder please make a backup copy outside the meta folder.
+If you already use meta and you have custom drivers in the active folder please make a backup copy outside the meta folder. \
 Remove the existing meta folder from your system with:
  ```
  rm -r meta
@@ -81,8 +82,8 @@ You can now "testrun" the meta by typing:
  node meta '{"LogSeverity":"VERBOSE"}'
  ```
 
-This will run the meta in the opened terminal window. The start option '{"LogSeverity":"VERBOSE"}' will give you an awfull lot of logs. And you can now go to your NEEO app and search for new devices. As a keyword you can use "meta" to find the related drivers. You can install an (test)run a driver if you wish.
-As soon as you close the the terminal window the meta will stop running. Therfore it is recommended to use pm2 for running the driver (chapter 4).
+This will run the meta in the opened terminal window. The start option '{"LogSeverity":"VERBOSE"}' will give you an awfull lot of logs. And you can now go to your NEEO app and search for new devices. As a keyword you can use "meta" to find the related drivers. You can install an (test)run a driver if you wish. \
+As soon as you close the the terminal window the meta will stop running. Therfore it is recommended to use pm2 for running the driver (chapter 4). \
 If you need to run the meta in the terminal for some reason you can type (please make sure you are not running it in pm2 at the same time):
  ```
  cd /home/pi/meta
@@ -90,7 +91,7 @@ If you need to run the meta in the terminal for some reason you can type (please
  ```
 
 ### 4 - Running the meta in pm2
-pm2 will make the metadriver run in the background so you dont have to have a terminal open.
+pm2 will make the metadriver run in the background so you dont have to have a terminal open. \
 First browse to the install folder of the meta driver:
  ```
  cd /home/pi/meta
