@@ -83,13 +83,8 @@ If you need to run the meta in the terminal for some reason you can type (please
 Note: If the meta is not running the commands for installed devices wont be processed. However all installed devices (by NEEO app) will remain installed to your NEEO.
 
 ### 3a - Updating the meta Driver
-If you already use meta and you have custom drivers in the active folder please make a backup copy outside the meta folder. \
-Remove the existing meta folder from your system with:
- ```
- rm -r meta
- ```
-
-Next follow the steps of chapter 2 and 3 to get yourself a fresh package of meta.
+If you already use meta and you have custom drivers in the active folder please make a backup copy outside the meta folder.  \
+Next just follow the steps of chapter 2 and 3 to get yourself a fresh package of meta. The old files will be overwritten in the process.
 
 ### 4 - Running the meta in pm2
 pm2 will make the metadriver run in the background so you dont have to have a terminal open. \
