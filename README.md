@@ -114,7 +114,7 @@ You are done.
 The meta will now automatically restart after rebooting the pi. You can go to your NEEO app to search for new devices. As a keyword you can use "meta" to find the related drivers.
 
 
-##### Some additional pm2 Commands to help you out in special Conditions
+#### Some additional pm2 Commands to help you out in special Conditions
 List all processes in pm2 (like a "Taskmanager"):
  ```
  pm2 list
