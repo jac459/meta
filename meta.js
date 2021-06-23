@@ -57,7 +57,6 @@ function networkDiscovery() {
       devices.forEach((newDevice) => {
         if (localDevices.findIndex((device)=>{return device.name == newDevice.name})<0) {
           localDevices.push({"name":newDevice.name,"ip":newDevice.ip,"mac":newDevice.mac, "short":undefined})
-          metaLog({type:LOG_TYPE.INFO, content:"New device discovered on the network with name " + newDevice.name + ". Please wait 10 min (from driver start) for full discovery and caching in your disk."});
         }
       });
     });
@@ -79,9 +78,9 @@ function networkDiscovery() {
           if (myObjectPTR && myObjectPTR.data) {
             myPort = myPort?myPort:myObjectPTR.data.port; 
           };
-          if (myObjectPTR && myObjectPTR.name) {
-            myShortName = myShortName?myShortName:myObjectPTR.name; 
-          };
+//          if (myObjectPTR && myObjectPTR.name) {
+//            myShortName = myShortName?myShortName:myObjectPTR.name; 
+//          };
         myObjectIP = response.additionals.find((answer) => {return answer.type == 'A'});
           if (myObjectIP && myObjectIP.data) {myIP = myObjectIP.data};
           myObjectMac = response.additionals.find((answer) => {return answer.type == 'AAA'});
@@ -99,9 +98,9 @@ function networkDiscovery() {
           if (myObjectPTR && myObjectPTR.data) {
             myPort = myPort?myPort:myObjectPTR.data.port; 
           };
-          if (myObjectPTR && myObjectPTR.name) {
-            myShortName = myShortName?myShortName:myObjectPTR.name; 
-          };
+//          if (myObjectPTR && myObjectPTR.name) {
+//            myShortName = myShortName?myShortName:myObjectPTR.name; 
+//          };
         myObjectIP = response.authorities.find((answer) => {return answer.type == 'A'});
           if (myObjectIP && myObjectIP.data) {myIP = myObjectIP.data};
           myObjectMac = response.authorities.find((answer) => {return answer.type == 'AAA'});
@@ -119,9 +118,9 @@ function networkDiscovery() {
           if (myObjectPTR && myObjectPTR.data) {
             myPort = myPort?myPort:myObjectPTR.data.port; 
           };
-          if (myObjectPTR && myObjectPTR.name) {
-            myShortName = myShortName?myShortName:myObjectPTR.name; 
-          };
+//          if (myObjectPTR && myObjectPTR.name) {
+//            myShortName = myShortName?myShortName:myObjectPTR.name; 
+//          };
         myObjectIP = response.answers.find((answer) => {return answer.type == 'A'});
           if (myObjectIP && myObjectIP.data) {myIP = myObjectIP.data};
           myObjectMac = response.answers.find((answer) => {return answer.type == 'AAA'});
@@ -148,7 +147,7 @@ function networkDiscovery() {
     setTimeout(() => {
       metaLog({type:LOG_TYPE.INFO, content:"stopping discovery process."});
       mdns.destroy();
-    }, 3600000);
+    }, 600000);
   }) 
   return null;
 }
@@ -514,7 +513,7 @@ function executeDriverCreation (driver, hubController, passedDeviceId) {
 
       //TODO check if this is still usefull
       //if (hubController) {controller.assignDiscoverHubController(hubController)}; //if the device is a discovered device.
-      const theDevice = neeoapi.buildDevice(settings.driverPrefix + driver.name) 
+      const theDevice = neeoapi.buildDevice(".meta2 " + driver.name) 
       theDevice.setType(driver.type); 
       theDevice.setDriverVersion(driver.version);
       theDevice.setManufacturer(driver.manufacturer);
@@ -820,7 +819,7 @@ function runNeeo () {
     const neeoSettings = {
       brain: config.brainip.toString(),
       port: config.brainport.toString(),
-      name: settings.runtimeName,
+      name: ".meta",
       devices: driverTable
     };
     metaLog({type:LOG_TYPE.INFO, content:"Current directory: " + __dirname});
