@@ -30,7 +30,7 @@ All following install-processes are done by terminal commands. If you have a dis
 The meta needs a few prerequisites for operating. These have to be installed to your pi. Please scroll down to prerequisites section.
  
 ### 1 - Browse to the Folder where you want to install the Package
-For convinience it is recommended to install the meta driver to the folder /home/pi. This is the home folder. If you want to install to a different location you can type "cd" followed by the path. \
+For convenience it is recommended to install the meta driver to the folder /home/pi. This is the home folder. If you want to install to a different location you can type "cd" followed by the path. \
 Howewer if you want to install to the home folder you dont need specifically browse to that location after opening the terminal. This is because the home folder is the default location.
   
 ### 2 - Download and unzip the Package
@@ -41,12 +41,12 @@ Note: From macOs, you may need to install wget first using: brew install wget
  wget https://github.com/jac459/meta/archive/refs/tags/0.9.5.zip
  ```
  
-Next we need to unzip the downloaded packe with the following command:
+Next unzip the downloaded package with the following command:
  ```
  unzip 0.9.5.zip
  ```
 
-Now we will rename the unziped folder to just "meta":
+Now rename the unziped folder to just "meta":
  ```
  mv meta-0.9.5 meta
  ```
@@ -55,16 +55,6 @@ The downloaded .zip can now be removed with the following command:
  ```
  rm 0.9.5.zip
  ```
-
-### 2a - Updating the meta Packages
-If you already use meta and you have custom drivers in the active folder please make a backup copy outside the meta folder. \
-Remove the existing meta folder from your system with:
- ```
- rm -r meta
- ```
-
-Next follow the steps of chapter 2 to get yourself a fresh package of meta.
- 
 
 ### 3 - Install the meta Driver
 Now that you have downloaded and unzipped the files from the repository you need to install all linked repositories/ dependancies. For this you first have to browse into the meta folder with:
@@ -82,13 +72,24 @@ You can now "testrun" the meta by typing:
  node meta '{"LogSeverity":"VERBOSE"}'
  ```
 
-This will run the meta in the opened terminal window. The start option '{"LogSeverity":"VERBOSE"}' will give you an awfull lot of logs. And you can now go to your NEEO app and search for new devices. As a keyword you can use "meta" to find the related drivers. You can install an (test)run a driver if you wish. \
-As soon as you close the the terminal window the meta will stop running. Therfore it is recommended to use pm2 for running the driver (chapter 4). \
+This will run the meta in the opened terminal window. The start option '{"LogSeverity":"VERBOSE"}' will give you an awfull lot of logs. \
+You can now go to your NEEO app and search for new devices. As a keyword you can use "meta" to find the related drivers. Also you can install and (test)run a driver if you wish. \
+As soon as you close the the terminal window the meta will stop running. Therefore it is recommended to use pm2 for running the driver (chapter 4). \
 If you need to run the meta in the terminal for some reason you can type (please make sure you are not running it in pm2 at the same time):
  ```
  cd /home/pi/meta
  node meta '{"LogSeverity":"VERBOSE"}'
  ```
+Note: If the meta is not running the commands for installed devices wont be processed. However all installed devices (by NEEO app) will remain installed to your NEEO.
+
+### 3a - Updating the meta Driver
+If you already use meta and you have custom drivers in the active folder please make a backup copy outside the meta folder. \
+Remove the existing meta folder from your system with:
+ ```
+ rm -r meta
+ ```
+
+Next follow the steps of chapter 2 and 3 to get yourself a fresh package of meta.
 
 ### 4 - Running the meta in pm2
 pm2 will make the metadriver run in the background so you dont have to have a terminal open. \
