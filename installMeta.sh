@@ -21,6 +21,9 @@ wget https://github.com/jac459/meta/archive/refs/tags/latest.zip
 unzip *.zip
 mv meta-* meta
 rm *.zip
+cd meta
+npm install
+cd ~
 echo "*** STEP 7 - Creating the startup scripts and rebooting, you should see the meta in your neeo now ***"
 pm2 start mosquitto
 pm2 start node-red
