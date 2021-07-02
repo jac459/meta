@@ -25,10 +25,13 @@ Instrutions: https://github.com/jac459/meta-yamahaAVR
   
 ## A - How to install
 
-### Experimental:
+### Experimental Automatic install:
 Simply use this script to install the meta in your raspberry PI:
+```
 wget https://raw.githubusercontent.com/jac459/meta/master/installMeta.sh | . ./installMeta.sh
+```
 
+### Alternatively you can install manually with following steps
 All following install-processes are done by terminal commands. If you have a display connected to your raspberry pi you can open the LXTerminal for typing the commands. If you are using your raspberry pi in headless mode you can connect to it via PuTTY.
  
 ### 0 - Prerequisites
