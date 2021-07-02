@@ -12,6 +12,8 @@ echo "*** STEP 2 - Install node.js best friend: npm (friends of our friends are 
 sudo apt install -y npm
 echo "*** STEP 3 - Make your Raspberry a communication Champion with mosquitto, the best MQTT broker to communicate with your devices and hubs ***"
 sudo apt install -y mosquitto
+sudo systemctl stop mosquitto.service
+sudo systemctl disable mosquitto.service
 echo "*** STEP 4 - With NODE-RED, your Raspberry will be the king of IOT with many protocols and devices supported ***"
 bash <(curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/deb/update-nodejs-and-nodered)
 echo "*** STEP 5 - Now we create the possibility to orchestrate everything using pm2 ***"
