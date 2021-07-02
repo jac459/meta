@@ -25,4 +25,5 @@ echo "*** STEP 7 - Creating the startup scripts and rebooting, you should see th
 pm2 start mosquitto
 pm2 start node-red
 pm2 start ./meta/meta.js
+pm2 save
 sudo reboot
