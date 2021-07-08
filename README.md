@@ -7,7 +7,7 @@ You can join the community.. \
 ..on Discord: https://discord.gg/3nuUZwXVXA \
 ..or on Telegram (backup): https://t.me/joinchat/NocMDU9RCVP9hSCJxPsCEg
  
-#### Currently supported Drivers:
+#### Some driver examples:
 ##### 1 - Roon Driver (control your roon music/zones/outputs)
 Demo: https://www.youtube.com/watch?v=iphGhOKRXJQ \
 Specific install instructions: https://github.com/jac459/meta-roon
@@ -22,7 +22,20 @@ Instructions: https://github.com/jac459/meta-volumio
 ##### 5 - Yamaha AVR
 Instrutions: https://github.com/jac459/meta-yamahaAVR
   
-  
+## Releases
+### 0.9.8 
+Main drivers supported: 
+Main features:
+
+### 0.9.5 (current release)
+#### Main drivers supported: 
+Hue, Yamaha AVR, Broadlink (Generic + Air Conditionnated), 
+Volumio, Roon.
+#### Main features:
+##### Standard features + node-red usage for broadlink + enhanced discovery + enhanced devices monitoring + hosting in raspberry pi4
+##### Missing features: meta management driver not compatible yet.
+##### Known bugs: When adding a device, refreshing the page could generate double monitoring of device (waste of resources).
+
 ## A - How to install
 
 ### Experimental Automatic install:
