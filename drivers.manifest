@@ -61,8 +61,8 @@
       "author": "JAC459",
       "description": "Full control of your Yamaha AVR.",
       "version": 2,
-      "driverLocation": "https://raw.githubusercontent.com/jac459/meta-webosLGTV/main/LGTV.json",
-      "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-webosLGTV/main/pics/WebOS%20LG.jpg"
+      "driverLocation": "https://raw.githubusercontent.com/jac459/meta-yamahaAVR/main/yamaha.json",
+      "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-yamahaAVR/main/pics/Yamaha.jpg"
     },
     {
       "name": "WebOS LGTV",
