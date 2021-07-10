@@ -38,7 +38,7 @@
       "description": "Full Kodi control",
       "version": 2,
       "driverLocation": "https://raw.githubusercontent.com/Ton-O/meta-kodi/main/Meta%20custom%20driver/KODI.json",
-      "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/Kodi.jpg"
+      "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/KodiLogo.jpg"
     },
     {
       "name": "Roon",
