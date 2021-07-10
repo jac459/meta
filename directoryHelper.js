@@ -69,6 +69,7 @@ class directoryHelper {
         let commandSetIndex = params.browseIdentifier.split("$CommandSet=")[1];
         params.browseIdentifier = params.browseIdentifier.split("$CommandSet=")[0];
         self.controller.evalWrite(self.feederH[self.currentFeederIndex].commandset[commandSetIndex].evalwrite, PastQueryValue, deviceId);
+        self.controller.evalDo(self.feederH[self.currentFeederIndex].commandset[commandSetIndex].evaldo, PastQueryValue, deviceId);
         self.evalNext(deviceId, self.feederH[self.currentFeederIndex].commandset[commandSetIndex].evalnext, PastQueryValue, params.browseIdentifier);//assign the good value to know the feeder
       }
       else if (params.history != undefined && params.history.length>0 && params.offset==0 && self.previousOffset == 0) {//case where we browse backward
@@ -105,8 +106,8 @@ class directoryHelper {
       return new Promise(function (resolve, reject) {
         
 //        self.currentCommandResult = [];//initialise as new commands will be done now.
-
-        self.fillTheList(deviceId, cacheList, allconfigs, params, 0, 0).then((cacheList) => {//cacheList, allconfigs, params, indentCommand
+        try {
+         self.fillTheList(deviceId, cacheList, allconfigs, params, 0, 0).then((cacheList) => {//cacheList, allconfigs, params, indentCommand
             //Feed the neeo list
          let neeoList;
             neeoList = neeoapi.buildBrowseList({
@@ -135,6 +136,20 @@ class directoryHelper {
                 }
                 neeoList.addListTiles(tiles);
               }
+              else if (cacheList[i].itemtype == 'button') {
+                let buttonLine = [];
+                buttonLine.push({title:cacheList[i].name, uiAction:'reload',iconName:cacheList[i].image,inverse:cacheList[i].UI,actionIdentifier:(cacheList[i].action ? cacheList[i].action + "$ListIndex=" + (i) : cacheList[i].action)});
+                if (cacheList[i+1] && cacheList[i+1].itemtype == "button" && cacheList[i+2] && cacheList[i+2].itemtype == "button") {
+                  buttonLine.push({title:cacheList[i+1].name, uiAction:'reload',iconName:cacheList[i+1].image,inverse:cacheList[i+1].UI,actionIdentifier:(cacheList[i+1].action ? cacheList[i+1].action + "$ListIndex=" + (i+1) : cacheList[i+1].action)});
+                  buttonLine.push({title:cacheList[i+2].name, uiAction:'reload',iconName:cacheList[i+2].image,inverse:cacheList[i+2].UI,actionIdentifier:(cacheList[i+2].action ? cacheList[i+2].action + "$ListIndex=" + (i+2) : cacheList[i+2].action)});
+                  i=i+2;
+                }
+                if (cacheList[i+1] && cacheList[i+1].itemtype == "button") {
+                  buttonLine.push({title:cacheList[i+1].name, uiAction:'reload',iconName:cacheList[i+1].image,inverse:(cacheList[i+1].UI?cacheList[i+1].UI:false),actionIdentifier:(cacheList[i+1].action ? cacheList[i+1].action + "$ListIndex=" + (i+1) : cacheList[i+1].action)});
+                  i=i+1;
+                }
+                neeoList.addListButtons(buttonLine);
+             }
               else {
                  neeoList.addListItem({
                   title: cacheList[i].name,
@@ -148,7 +163,10 @@ class directoryHelper {
             }
             resolve(neeoList);
           })
-        
+        }
+        catch (err) {
+          metaLog({type:LOG_TYPE.ERROR, content:'Problem refreshing the list', deviceId:deviceId});
+        }
       })
     }
 
@@ -257,7 +275,10 @@ class directoryHelper {
         let ActionIndex = self.feederH.findIndex((feed) => {return (feed.name == params.actionIdentifier)});
         
         //Processing all commandset recursively
-        resolve(self.executeAllActions(deviceId, PastQueryValue, ListIndex, self.feederH[ActionIndex].commandset, 0));
+        if (ActionIndex>=0){
+          resolve(self.executeAllActions(deviceId, PastQueryValue, ListIndex, self.feederH[ActionIndex].commandset, 0));
+        }
+        else {resolve();}
       });
     };
 

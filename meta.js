@@ -54,100 +54,101 @@ function networkDiscovery() {
     //Unleaching discovery
     //Mac addresses.
     find().then(devices => {
-      devices.forEach((newDevice) => {
-        if (localDevices.findIndex((device)=>{return device.name == newDevice.name})<0) {
-          localDevices.push({"name":newDevice.name,"ip":newDevice.ip,"mac":newDevice.mac, "short":undefined})
+      mdns.on('response', function(response) {
+        let myObjectPTR, myObjectIP, myObjectMac;
+        let myName, myShortName, myIP, myMAC, myPort = undefined
+        if (response.additionals) {
+          myObjectPTR = response.additionals.find((answer) => {return answer.type == 'PTR'});
+          if (myObjectPTR && myObjectPTR.data) {
+            myName = myName?myName:myObjectPTR.data; 
+          };
+          if (myObjectPTR && myObjectPTR.name) {
+            myShortName = myShortName?myShortName:myObjectPTR.name; 
+          };
+          myObjectPTR = response.additionals.find((answer) => {return (answer.type == 'SRV')});
+            if (myObjectPTR && myObjectPTR.data) {
+              myPort = myPort?myPort:myObjectPTR.data.port; 
+            };
+  //          if (myObjectPTR && myObjectPTR.name) {
+  //            myShortName = myShortName?myShortName:myObjectPTR.name; 
+  //          };
+          myObjectIP = response.additionals.find((answer) => {return answer.type == 'A'});
+            if (myObjectIP && myObjectIP.data) {myIP = myObjectIP.data};
+            myObjectMac = response.additionals.find((answer) => {return answer.type == 'AAA'});
+            if (myObjectMac && myObjectMac.data) {myMac = myObjectMac.data};
+        }  
+        if (response.authorities) {
+          myObjectPTR = response.authorities.find((answer) => {return answer.type == 'PTR'});
+            if (myObjectPTR && myObjectPTR.data) {
+              myName = myName?myName:myObjectPTR.data; 
+            };
+            if (myObjectPTR && myObjectPTR.name) {
+              myShortName = myShortName?myShortName:myObjectPTR.name; 
+            };
+          myObjectPTR = response.authorities.find((answer) => {return (answer.type == 'SRV')});
+            if (myObjectPTR && myObjectPTR.data) {
+              myPort = myPort?myPort:myObjectPTR.data.port; 
+            };
+  //          if (myObjectPTR && myObjectPTR.name) {
+  //            myShortName = myShortName?myShortName:myObjectPTR.name; 
+  //          };
+          myObjectIP = response.authorities.find((answer) => {return answer.type == 'A'});
+            if (myObjectIP && myObjectIP.data) {myIP = myObjectIP.data};
+            myObjectMac = response.authorities.find((answer) => {return answer.type == 'AAA'});
+            if (myObjectMac && myObjectMac.data) {myMac = myObjectMac.data};
+          }
+        if (response.answers) {
+          myObjectPTR = response.answers.find((answer) => {return (answer.type == 'PTR')});
+            if (myObjectPTR && myObjectPTR.data) {
+              myName = myName?myName:myObjectPTR.data; 
+            };
+            if (myObjectPTR && myObjectPTR.name) {
+              myShortName = myShortName?myShortName:myObjectPTR.name; 
+            };
+          myObjectPTR = response.answers.find((answer) => {return (answer.type == 'SRV')});
+            if (myObjectPTR && myObjectPTR.data) {
+              myPort = myPort?myPort:myObjectPTR.data.port; 
+            };
+  //          if (myObjectPTR && myObjectPTR.name) {
+  //            myShortName = myShortName?myShortName:myObjectPTR.name; 
+  //          };
+          myObjectIP = response.answers.find((answer) => {return answer.type == 'A'});
+            if (myObjectIP && myObjectIP.data) {myIP = myObjectIP.data};
+            myObjectMac = response.answers.find((answer) => {return answer.type == 'AAA'});
+            if (myObjectMac && myObjectMac.data) {myMac = myObjectMac.data};
+          }
+        
+        if (localDevices.findIndex((device)=>{return (device.name == myName && device.ip == myIP&& device.port == myPort)})<0) {
+          if (!myMAC) {
+            let ind = devices.findIndex((dev) => {return dev.ip == myIP});
+            if (ind>=0) {myMAC = devices[ind].mac}
+          }
+          localDevices.push({"name":myName,"ip":myIP,"mac":myMAC, "short":myShortName, "port":myPort});
+          if (delayWrite == undefined) {//In order to be gentle on storage.
+            delayWrite = setTimeout(() => {
+              fs.writeFile(discoveryBuffer, JSON.stringify(localDevices), err => {
+                if (err) {
+                  metaLog({type:LOG_TYPE.ERROR, content:"Error writing the discovery file. " + err});
+                  } else {
+                    metaLog({type:LOG_TYPE.WARNING, content:"Discovery updated"});
+                  }
+              })
+              delayWrite = undefined;
+            }, 10000);
+          }
         }
-      });
+      })
     });
 
     //multicast-dns
     let delayWrite = undefined; //Timer to avoid writting too much on the drive.
-    mdns.on('response', function(response) {
-      let myObjectPTR, myObjectIP, myObjectMac;
-      let myName, myShortName, myIP, myMAC, myPort = undefined
-      if (response.additionals) {
-        myObjectPTR = response.additionals.find((answer) => {return answer.type == 'PTR'});
-        if (myObjectPTR && myObjectPTR.data) {
-          myName = myName?myName:myObjectPTR.data; 
-        };
-        if (myObjectPTR && myObjectPTR.name) {
-          myShortName = myShortName?myShortName:myObjectPTR.name; 
-        };
-        myObjectPTR = response.additionals.find((answer) => {return (answer.type == 'SRV')});
-          if (myObjectPTR && myObjectPTR.data) {
-            myPort = myPort?myPort:myObjectPTR.data.port; 
-          };
-//          if (myObjectPTR && myObjectPTR.name) {
-//            myShortName = myShortName?myShortName:myObjectPTR.name; 
-//          };
-        myObjectIP = response.additionals.find((answer) => {return answer.type == 'A'});
-          if (myObjectIP && myObjectIP.data) {myIP = myObjectIP.data};
-          myObjectMac = response.additionals.find((answer) => {return answer.type == 'AAA'});
-          if (myObjectMac && myObjectMac.data) {myMac = myObjectMac.data};
-      }  
-      if (response.authorities) {
-        myObjectPTR = response.authorities.find((answer) => {return answer.type == 'PTR'});
-          if (myObjectPTR && myObjectPTR.data) {
-            myName = myName?myName:myObjectPTR.data; 
-          };
-          if (myObjectPTR && myObjectPTR.name) {
-            myShortName = myShortName?myShortName:myObjectPTR.name; 
-          };
-        myObjectPTR = response.authorities.find((answer) => {return (answer.type == 'SRV')});
-          if (myObjectPTR && myObjectPTR.data) {
-            myPort = myPort?myPort:myObjectPTR.data.port; 
-          };
-//          if (myObjectPTR && myObjectPTR.name) {
-//            myShortName = myShortName?myShortName:myObjectPTR.name; 
-//          };
-        myObjectIP = response.authorities.find((answer) => {return answer.type == 'A'});
-          if (myObjectIP && myObjectIP.data) {myIP = myObjectIP.data};
-          myObjectMac = response.authorities.find((answer) => {return answer.type == 'AAA'});
-          if (myObjectMac && myObjectMac.data) {myMac = myObjectMac.data};
-        }
-      if (response.answers) {
-        myObjectPTR = response.answers.find((answer) => {return (answer.type == 'PTR')});
-          if (myObjectPTR && myObjectPTR.data) {
-            myName = myName?myName:myObjectPTR.data; 
-          };
-          if (myObjectPTR && myObjectPTR.name) {
-            myShortName = myShortName?myShortName:myObjectPTR.name; 
-          };
-        myObjectPTR = response.answers.find((answer) => {return (answer.type == 'SRV')});
-          if (myObjectPTR && myObjectPTR.data) {
-            myPort = myPort?myPort:myObjectPTR.data.port; 
-          };
-//          if (myObjectPTR && myObjectPTR.name) {
-//            myShortName = myShortName?myShortName:myObjectPTR.name; 
-//          };
-        myObjectIP = response.answers.find((answer) => {return answer.type == 'A'});
-          if (myObjectIP && myObjectIP.data) {myIP = myObjectIP.data};
-          myObjectMac = response.answers.find((answer) => {return answer.type == 'AAA'});
-          if (myObjectMac && myObjectMac.data) {myMac = myObjectMac.data};
-        }
-      
-      if (localDevices.findIndex((device)=>{return (device.name == myName && device.ip == myIP&& device.port == myPort)})<0) {
-        localDevices.push({"name":myName,"ip":myIP,"mac":myMAC, "short":myShortName, "port":myPort});
-        if (delayWrite == undefined) {//In order to be gentle on storage.
-          delayWrite = setTimeout(() => {
-            fs.writeFile(discoveryBuffer, JSON.stringify(localDevices), err => {
-              if (err) {
-                metaLog({type:LOG_TYPE.ERROR, content:"Error writing the discovery file. " + err});
-                } else {
-                  metaLog({type:LOG_TYPE.WARNING, content:"Discovery updated"});
-                }
-            })
-            delayWrite = undefined;
-          }, 10000);
-        }
-      }
-    })
+
+
 
     setTimeout(() => {
       metaLog({type:LOG_TYPE.INFO, content:"stopping discovery process."});
       mdns.destroy();
-    }, 600000);
+    }, 10800000);
   }) 
   return null;
 }
@@ -316,15 +317,15 @@ function instanciationHelper(controller, givenResult, jsonDriver) {
     recontructedDriver = recontructedDriver + tempoResult;
     recontructedDriver = recontructedDriver + slicedDriver[index].split(" DYNAMIK_INST_END")[1];
   }
+  recontructedDriver = controller.vault.readVariables(recontructedDriver, DEFAULT);
   metaLog({type:LOG_TYPE.VERBOSE, content:'Driver has been reconstructed.'});
   metaLog({type:LOG_TYPE.VERBOSE, content:recontructedDriver});
 
-  return JSON.parse(controller.vault.readVariables(recontructedDriver, DEFAULT));
+  return JSON.parse(recontructedDriver);
 }
 
 function prepareCommand(controller, commandArray, deviceId, index) {
   return new Promise(function (resolve, reject) {
-    
     if (commandArray && commandArray.length>index) {
       controller.actionManager(deviceId, commandArray[index].type, commandArray[index].command, commandArray[index].queryresult, commandArray[index].evaldo, commandArray[index].evalwrite)
       .then(()=>{
@@ -403,12 +404,8 @@ function registerDevice(controller, driver, deviceId) {
     controller.actionManager(DEFAULT, driver.register.registrationcommand.type, driver.register.registrationcommand.command, 
                           driver.register.registrationcommand.queryresult, '', driver.register.registrationcommand.evalwrite)
     .then((result) => {
-      metaLog({deviceId: deviceId, type:LOG_TYPE.FATAL, content:'Result of the registration command: '});
-      metaLog({deviceId: deviceId, type:LOG_TYPE.VERBOSE, content:result});
-
       controller.reInitVariablesValues(deviceId);
       controller.reInitConnectionsValues(deviceId);
-      controller.vault.snapshotDataStore();
       if (controller.vault.getValue("IsRegistered", deviceId)) {
         metaLog({deviceId: deviceId, type:LOG_TYPE.INFO, content:"Registration success"});
         resolve(true);
@@ -427,14 +424,16 @@ function isDeviceRegistered(controller, driver, deviceId) {
     metaLog({deviceId: deviceId, type:LOG_TYPE.VERBOSE, content:'is registered ? : ' + retValue});
     if (retValue) {resolve(retValue);}
     else {
-      registerDevice(controller, driver, deviceId).then((result)=>{
-        metaLog({deviceId: deviceId, type:LOG_TYPE.VERBOSE, content:'the result of the registration process is '+result});
-        if (result) {
-          resolve(true);
-        }
-        else {
-          resolve(false)
-        }
+      prepareCommand(controller, driver.register.commandset, deviceId, 0).then(()=> {
+        registerDevice(controller, driver, deviceId).then((result)=>{
+          metaLog({deviceId: deviceId, type:LOG_TYPE.VERBOSE, content:'the result of the registration process is '+result});
+          if (result) {
+            resolve(true);
+          }
+          else {
+            resolve(false)
+          }
+        })
       })
     }
   })
@@ -513,7 +512,7 @@ function executeDriverCreation (driver, hubController, passedDeviceId) {
 
       //TODO check if this is still usefull
       //if (hubController) {controller.assignDiscoverHubController(hubController)}; //if the device is a discovered device.
-      const theDevice = neeoapi.buildDevice(".meta2 " + driver.name) 
+      const theDevice = neeoapi.buildDevice(settings.driverPrefix + driver.name) 
       theDevice.setType(driver.type); 
       theDevice.setDriverVersion(driver.version);
       theDevice.setManufacturer(driver.manufacturer);
@@ -547,9 +546,7 @@ function executeDriverCreation (driver, hubController, passedDeviceId) {
 
 
       //GET ALL CONNECTIONS
-      if (driver.webSocket) {
-        controller.addConnection({"name":"webSocket", "descriptor":driver.webSocket, "connector":"", "deviceId":deviceId})
-      }
+      controller.addConnection({"name":"webSocket", "descriptor":"", "connector":"", "deviceId":deviceId})
       if (driver.socketIO) {
         controller.addConnection({"name":"socketIO", "descriptor":driver.socketIO, "connector":"", "deviceId":deviceId})
       }
@@ -566,16 +563,20 @@ function executeDriverCreation (driver, hubController, passedDeviceId) {
     
       //Registration
       if (driver.register) {
-        theDevice.enableRegistration(
-        {
-          type: 'SECURITY_CODE',
-          headerText: driver.register.registerheadertext,
-          description: driver.register.registerdescription,
-        },
-        {
-          register: (credentials) => getRegistrationCode(controller, credentials, driver, deviceId),
-          isRegistered: () => {return new Promise(function (resolve, reject) {isDeviceRegistered(controller, driver, deviceId).then((res)=>{resolve(res)})})},
-        })
+        //need to test internal variable here.... same story than discovery my friend...
+//        prepareCommand(controller, driver.register.commandset, deviceId, 0).then(()=> {
+        
+          theDevice.enableRegistration(
+          {
+            type: 'SECURITY_CODE',
+            headerText: driver.register.registerheadertext,
+            description: driver.register.registerdescription,
+          },
+          {
+            register: (credentials) => getRegistrationCode(controller, credentials, driver, deviceId),
+            isRegistered: () => {return new Promise(function (resolve, reject) {isDeviceRegistered(controller, driver, deviceId).then((res)=>{resolve(res)})})},
+          })
+//      })
       }
 
       //DISCOVERY  
@@ -627,6 +628,7 @@ function executeDriverCreation (driver, hubController, passedDeviceId) {
               interestedAndUsing: [],              
               type : driver.listeners[prop].type,
               command : driver.listeners[prop].command,
+              initialCommand : driver.listeners[prop].command,
               timer : "", //prepare the listener to save the timer here.
               pooltime : driver.listeners[prop].pooltime,
               poolduration : driver.listeners[prop].poolduration,
@@ -728,7 +730,7 @@ function executeDriverCreation (driver, hubController, passedDeviceId) {
 
         theDevice.addButtonHandler((name, theDeviceId) => {controller.onButtonPressed(name, theDeviceId)})
         theDevice.registerSubscriptionFunction((updateCallback) => {controller.sendComponentUpdate = updateCallback});
-        theDevice.registerInitialiseFunction((theDeviceId) => {controller.initialise(theDeviceId)});
+        theDevice.registerInitialiseFunction((theDeviceId) => {}); //Don't want to initialise to early because of registration and initiation mecanism
         theDevice.registerDeviceSubscriptionHandler(
           {
             deviceAdded: (theDeviceId) => {
@@ -815,11 +817,11 @@ function setupNeeo(forceDiscovery) {
 
 function runNeeo () {
   return new Promise(function (resolve, reject) {
-    if (!config.brainport) {config.brainport = 4015}
+    if (!config.brainport) {config.brainport = settings.defaultPort}
     const neeoSettings = {
       brain: config.brainip.toString(),
       port: config.brainport.toString(),
-      name: ".meta",
+      name: settings.runtimeName,
       devices: driverTable
     };
     metaLog({type:LOG_TYPE.INFO, content:"Current directory: " + __dirname});
@@ -923,7 +925,7 @@ if (process.argv.length>2) {
 
 getConfig().then(() => {
     networkDiscovery();
-    mqttClient = mqtt.connect('mqtt://' + settings.mqtt, {clientId:"meta"}); // Always connect to the local mqtt broker
+    mqttClient = mqtt.connect('mqtt://' + settings.mqtt, {clientId:settings.mqttClientId}); // Always connect to the local mqtt broker
     mqttClient.setMaxListeners(0); //CAREFULL OF MEMORY LEAKS HERE.
     mqttClient.on('connect', () => {
       metaLog({type:LOG_TYPE.WARNING, content:"Connection to MQTT Broker Successful."});

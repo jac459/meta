@@ -1,6 +1,6 @@
 {
   "name": "meta",
-  "version": "0.9.5",
+  "version": "0.9.8",
   "description": ".meta, neeo RAD platform",
   "main": "meta.js",
   "scripts": {
@@ -12,10 +12,6 @@
   },
   "keywords": [
     "meta",
-    "roon",
-    "hue",
-    "yamaha",
-    "broadlink",
     "neeo"
   ],
   "author": "jac459",
@@ -34,7 +30,8 @@
     "multicast-dns": "^7.2.3",
     "neeo-sdk": "^0.53.8",
     "socket.io-client": "2.4.0",
-    "wake_on_lan": "^1.0.0",
+    "wol": "^1.0.7",
+    "ws": "^7.5.0",
     "xpath": "0.0.32"
   }
 }

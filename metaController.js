@@ -10,7 +10,6 @@ const { directoryHelper } = require(path.join(__dirname,'directoryHelper'));
 const { variablesVault } = require(path.join(__dirname,'variablesVault'));
 const settings = require(path.join(__dirname,'settings'));
 
-const wol = require('wake_on_lan');
 const variablePattern = {'pre':'$','post':''};
 const BUTTONHIDE = '__';
 const RESULT = variablePattern.pre + 'Result' + variablePattern.post;
@@ -26,7 +25,7 @@ const SOCKETIO = 'socketIO';
 const JSONTCP = 'jsontcp';
 const MQTT = 'mqtt';
 const WOL = 'wol';
-const { ProcessingManager, httpgetProcessor, httprestProcessor, httpgetSoapProcessor, httppostProcessor, cliProcessor, staticProcessor, webSocketProcessor, jsontcpProcessor, mqttProcessor, socketIOProcessor, replProcessor } = require('./ProcessingManager');
+const { ProcessingManager, httpgetProcessor, httprestProcessor, httpgetSoapProcessor, httppostProcessor, cliProcessor, staticProcessor, webSocketProcessor, jsontcpProcessor, mqttProcessor, socketIOProcessor, wolProcessor, replProcessor } = require('./ProcessingManager');
 const { metaMessage, LOG_TYPE } = require("./metaMessage");
 
 const processingManager = new ProcessingManager();
@@ -37,6 +36,7 @@ const myCliProcessor = new cliProcessor();
 const myStaticProcessor = new staticProcessor();
 const myWebSocketProcessor = new webSocketProcessor();
 const mySocketIOProcessor = new socketIOProcessor();
+const myWolProcessor = new wolProcessor();
 const myJsontcpProcessor = new jsontcpProcessor();
 const myMqttProcessor = new mqttProcessor();
 const myReplProcessor = new replProcessor();
@@ -85,11 +85,11 @@ module.exports = function controller(driver) {
     let listIndent;
     if (params.isHub == false) { //if not a Hub, all device have to listen. 
       metaLog({deviceId:params.deviceId, type:LOG_TYPE.VERBOSE, content:'addListener : ' + params.command});
-      listIndent = self.listeners.findIndex((listen) => {return (listen.command == params.command && listen.deviceId == params.deviceId)});
+      listIndent = self.listeners.findIndex((listen) => {return (listen.name == params.name && listen.command == params.command && listen.deviceId == params.deviceId)});
     } 
     else {
       metaLog({deviceId:params.deviceId, type:LOG_TYPE.VERBOSE, content:'addListener : ' + params.command});
-      listIndent = self.listeners.findIndex((listen) => {return (listen.command == params.command)});
+      listIndent = self.listeners.findIndex((listen) => {return (listen.name == params.name && listen.command == params.command)});
     }
 
     if (listIndent < 0) {//the command is new.
@@ -111,7 +111,9 @@ module.exports = function controller(driver) {
       self.listeners.push(params);
     }
     else {//we forbid addition of a new duplicate command to listen and we add the evalwrite conditions instead.
-      self.listeners[listIndent].interested.push(params.deviceId);
+      if (self.listeners[listIndent].interested.findIndex((interested)=>{return interested == params.deviceId})<0) {
+        self.listeners[listIndent].interested.push(params.deviceId);
+      }
       if (params.evalwrite) {
         params.evalwrite.forEach(pEw => {
           let ewI = self.listeners[listIndent].evalwrite.findIndex((ew) => {return ((ew.variable == pEw.variable) && (ew.deviceId == pEw.deviceId))});
@@ -257,7 +259,7 @@ module.exports = function controller(driver) {
         //process the value
         let finalValue = self.vault.readVariables(evalW.value, deviceId);
         finalValue = self.assignTo(RESULT, finalValue, result);
-        metaLog({type:LOG_TYPE.VERBOSE, content:"Value to EvalWrite: " + finalValue, deviceId:deviceId});
+        metaLog({type:LOG_TYPE.INFO, content:"Value to EvalWrite: " + finalValue, deviceId:deviceId});
         self.vault.writeVariable(evalW.variable, finalValue, deviceId); 
       });
     }
@@ -268,7 +270,9 @@ module.exports = function controller(driver) {
       evaldo.forEach(evalD => {
         if (evalD.test == '' || evalD.test == true) {evalD.test = true;} //in case of no test, go to the do function
         let finalDoTest = self.vault.readVariables(evalD.test, deviceId);// prepare the test to assign variable and be evaluated.
+        metaLog({type:LOG_TYPE.INFO, content:"Result to evaldo: " + finalDoTest, deviceId:deviceId});
         finalDoTest = self.assignTo(RESULT, finalDoTest, result);
+        metaLog({type:LOG_TYPE.INFO, content:"Result to evaldo: " + finalDoTest, deviceId:deviceId});
         if (finalDoTest) {
           if (evalD.then && evalD.then != '')
           {
@@ -300,7 +304,7 @@ module.exports = function controller(driver) {
   };
 
   this.getConnection = function(commandtype, deviceId) {
-    return self.connectionH[self.connectionH.findIndex((item) => { return (item.name==commandtype && item.deviceId==deviceId); })];
+     return self.connectionH[self.connectionH.findIndex((item) => { return (item.name==commandtype && item.deviceId==deviceId); })];
   };
 
   this.assignProcessor = function(commandtype) {
@@ -328,6 +332,9 @@ module.exports = function controller(driver) {
     else if (commandtype == SOCKETIO) {
       processingManager.processor = mySocketIOProcessor;
     }
+    else if (commandtype == WOL) {
+      processingManager.processor = myWolProcessor;
+    }
     else if (commandtype == JSONTCP) {
       processingManager.processor = myJsontcpProcessor;
     }
@@ -337,7 +344,7 @@ module.exports = function controller(driver) {
     else if (commandtype == REPL) {
       processingManager.processor = myReplProcessor;
     }
-    else {metaLog({type:LOG_TYPE.ERROR, content:'Error in meta settings: The commandtype to process is not defined: ' + commandtype, deviceId:deviceId});}
+    else {metaLog({type:LOG_TYPE.ERROR, content:'Error in meta settings: The commandtype to process is not defined: ' + commandtype});}
   };
 
   this.initiateProcessor = function(commandtype, deviceId) { // Initiate communication protocoles
@@ -392,16 +399,14 @@ module.exports = function controller(driver) {
     })  
   };
 
-  this.listenProcessor = function(command, commandtype, listener, deviceId) { // process any command according to the target protocole
+  this.listenProcessor = function(listener, deviceId) { // process any command according to the target protocole
     return new Promise(function (resolve, reject) {
 
-      self.assignProcessor(commandtype);
+      self.assignProcessor(listener.type);
       //TODO Replace by let
-      const connection = self.getConnection(commandtype, deviceId);
+      const connection = self.getConnection(listener.type, deviceId);
+      let params = {'command' : listener.command, 'listener' : listener, '_listenCallback' : self.onListenExecute, 'connection' : connection};
       
-      command = self.vault.readVariables(command, deviceId);
-      let params = {'command' : command, 'listener' : listener, '_listenCallback' : self.onListenExecute, 'connection' : connection};
-  
       processingManager.startListen(params, deviceId)
       .then((result) => {
           resolve(result);
@@ -485,11 +490,14 @@ module.exports = function controller(driver) {
   this.listenStart = function (listener, deviceId) {
     return new Promise(function (resolve, reject) {
       try {
+        listener.command = self.vault.readVariables(listener.initialCommand, deviceId);
         if (listener.interested.includes(deviceId)) {
           if (listener.interestedAndUsing.findIndex(devId => {return devId == deviceId})<0) {
             listener.interestedAndUsing.push(deviceId);
-            self.listenProcessor(listener.command, listener.type, listener, deviceId);
-          }
+          } //CHANGE IN LISTENER LOGIC AS WE LISTEN PROCESSOR ANYWAY
+            metaLog({type:LOG_TYPE.INFO, content:"Listener will listen to command: " + listener.command, deviceId:deviceId});
+            self.listenProcessor(listener, deviceId);
+
         }
       } 
       catch (err) {reject('Error when starting to listen. ' + err);}
@@ -499,7 +507,6 @@ module.exports = function controller(driver) {
   this.actionManager = function (deviceId, commandtype, command, queryresult, evaldo, evalwrite) {
     return new Promise(function (resolve, reject) {
       try {
-        metaLog({type:LOG_TYPE.VERBOSE, content:'ActionManager, command: '+command+ ' - ' + commandtype, deviceId:deviceId});
         self.commandProcessor(command, commandtype, deviceId)
         .then((result) => {
           self.queryProcessor(result, queryresult, commandtype, deviceId).then((result) => {
@@ -523,7 +530,7 @@ module.exports = function controller(driver) {
   };
 
   this.initialise = function(deviceId) {
-    metaLog({type:LOG_TYPE.VERBOSE, content:'Initialising the device driver.', deviceId:deviceId});
+    metaLog({type:LOG_TYPE.VERBOSE, content:'Initialising the driver.', deviceId:deviceId});
 
     self.sliderH.forEach((helper) => {if (helper.deviceId == deviceId) {helper.initialise(deviceId);}});//No need to cleanup as double addition is protected
     self.switchH.forEach((helper) => {if (helper.deviceId == deviceId) {helper.initialise(deviceId);}});//No need to cleanup as double addition is protected
@@ -534,18 +541,17 @@ module.exports = function controller(driver) {
     self.connectionH.forEach(connection => {//open all driver connections type
       self.initiateProcessor(connection.name, deviceId);
     });
-    metaLog({type:LOG_TYPE.VERBOSE, content:self.listeners, deviceId:deviceId});
     self.listeners.forEach((listener) => {
-      if (listener.interested.includes(deviceId)) {//we start only the listeners of this device !!! Or if it is a hub.
-        metaLog({type:LOG_TYPE.VERBOSE, content:'Initialising the listeners driver.', deviceId:deviceId});
-        self.listenStart(listener, deviceId);
+      if (listener.interested.includes(deviceId?deviceId:"default")) {//we start only the listeners of this device !!! Or if it is a hub. The inserted default help for "constructor" devices discovering others.
+        metaLog({type:LOG_TYPE.VERBOSE, content:'Initialising the listeners of the driver.', deviceId:deviceId});
+        self.listenStart(listener, deviceId?deviceId:"default");
       }
     });
   };
   
   this.onButtonPressed = function(name, deviceId) {
     return new Promise(function (resolve, reject) {
-      metaLog({type:LOG_TYPE.VERBOSE, content:'[CONTROLLER] - ' + name + ' - button pressed', deviceId:deviceId});
+      metaLog({type:LOG_TYPE.WARNING, content:'[CONTROLLER] - ' + name + ' - button pressed', deviceId:deviceId});
       if (name == '__INITIALISE') {//Device resources and connection management.
         self.initialise(deviceId);
       }
@@ -557,7 +563,7 @@ module.exports = function controller(driver) {
           }
         });
         self.connectionH.forEach(connection => {
-          self.wrapUpProcessor(connection.name);
+          self.wrapUpProcessor(connection.name, deviceId);
         });
       }
       if (name == '__PERSIST') {//Device resources and connection management.
@@ -566,33 +572,21 @@ module.exports = function controller(driver) {
       let theButton = self.buttons[self.buttons.findIndex((button) => {return button.name ==  name && button.deviceId == deviceId;})];
       if (theButton != undefined) {
         theButton = theButton.value;
-        if (theButton.type != WOL) { //all the cases
-          if (!name.startsWith(BUTTONHIDE)) {
-            self.commandProcessor("{\"topic\":\""+ settings.mqtt_topic + self.name + "/" + deviceId + "/button/" + name + "\",\"message\":\"PRESSED\"}", MQTT, deviceId)
-          }
-          if (theButton.command != undefined){ 
-            self.actionManager(deviceId, theButton.type, theButton.command, theButton.queryresult, theButton.evaldo, theButton.evalwrite)
-            .then(()=>{
-              metaLog({type:LOG_TYPE.VERBOSE, content:'Button Action Done.', deviceId:deviceId});
-              resolve('Action done.');
-            })
-            .catch((err) => { 
-              metaLog({type:LOG_TYPE.ERROR, content:'Error when processing the command : ' + err, deviceId:deviceId});
-                resolve(err);
-            });
-          }
-          else {resolve("No command in the button.")}
+        if (!name.startsWith(BUTTONHIDE)) {
+          self.commandProcessor("{\"topic\":\""+ settings.mqtt_topic + self.name + "/" + deviceId + "/button/" + name + "\",\"message\":\"PRESSED\"}", MQTT, deviceId)
         }
-        else if (theButton.type == 'wol') {
-          resolve("wol");
-          wol.wake(theButton.command, function(error) {
-            if (error) {
-            } else {
-              // done sending packets
-            }
+        if (theButton.command != undefined){ 
+          self.actionManager(deviceId, theButton.type, theButton.command, theButton.queryresult, theButton.evaldo, theButton.evalwrite)
+          .then(()=>{
+            metaLog({type:LOG_TYPE.VERBOSE, content:'Button Action Done.', deviceId:deviceId});
+            resolve('Action done.');
+          })
+          .catch((err) => { 
+            metaLog({type:LOG_TYPE.ERROR, content:'Error when processing the command : ' + err, deviceId:deviceId});
+              resolve(err);
           });
-          //var magic_packet = wol.createMagicPacket(theButton.command);
         }
+        else {resolve("No command in the button.")}
       }
       else {resolve("no real button pressed")}
     })

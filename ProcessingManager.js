@@ -7,8 +7,10 @@ const io = require('socket.io-client');
 const rpc = require('json-rpc2');
 const lodash = require('lodash');
 const { parserXMLString, xmldom } = require("./metaController");
+const WebSocket = require('ws');
 //const mqtt = require('mqtt');
 const got = require('got');
+const wol = require('wol');
 const settings = require(path.join(__dirname,'settings'));
 const { connect } = require("socket.io-client");
 
@@ -16,6 +18,7 @@ const { connect } = require("socket.io-client");
 //Disable the NEEO library console warning.
 const { metaMessage, LOG_TYPE } = require("./metaMessage");
 const { startsWith } = require("lodash");
+const { retry } = require("statuses");
 console.error = console.info = console.debug = console.warn = console.trace = console.dir = console.dirxml = console.group = console.groupEnd = console.time = console.timeEnd = console.assert = console.profile = function() {};
 function metaLog(message) {
   let initMessage = { component:'processingManager', type:LOG_TYPE.INFO, content:'', deviceId: null };
@@ -82,7 +85,7 @@ class httprestProcessor {
         if (params.command.verb == 'post') {
           got.post(params.command.call, {json:params.command.message, responseType: 'json'})
          .then((response) => {
-            resolve(response.body[0]);
+            resolve(response.body);
           })
           .catch((err) => {
             metaLog({type:LOG_TYPE.ERROR, content:'Post request didn\'t work : '});
@@ -96,7 +99,7 @@ class httprestProcessor {
           metaLog({type:LOG_TYPE.VERBOSE, content:params.command.call});
           got.put(params.command.call, {json:params.command.message, responseType: 'json'})
           .then((response) => {
-            resolve(response.body[0]);
+            resolve(response.body);
           })
           .catch((err) => {
             metaLog({type:LOG_TYPE.ERROR, content:'Put request didn\'t work : '});
@@ -153,7 +156,7 @@ class httprestProcessor {
             resolve('');
           })
           .catch((err) => { metaLog({type:LOG_TYPE.ERROR, content:err});
-; });
+          });
       }, (params.listener.pooltime ? params.listener.pooltime : 1000));
       if (params.listener.poolduration && (params.listener.poolduration != '')) {
         setTimeout(() => {
@@ -242,6 +245,62 @@ class httpgetProcessor {
     }
 }
 exports.httpgetProcessor = httpgetProcessor;
+
+class wolProcessor {
+  constructor() {
+  };
+  initiate() {
+    return new Promise(function (resolve, reject) {
+      resolve();
+    });
+  }
+  process(params) {
+    return new Promise(function (resolve, reject) {
+      try {
+        wol.wake(params.command, function(err, res){
+          if (err) {
+            resolve({'error':err})
+          }
+          else {
+            resolve({'result':res})
+          }
+        });
+      }
+      catch (err) {
+        metaLog({type:LOG_TYPE.ERROR, content:err});
+        resolve({'error':err});
+      }
+    })
+  }
+  query(params) {
+    return new Promise(function (resolve, reject) {
+      if (params.query) {
+        try {
+          if (typeof (params.data) == 'string') { params.data = JSON.parse(params.data); };
+          resolve(JSONPath(params.query, params.data));
+        }
+        catch (err) {
+          metaLog({type:LOG_TYPE.ERROR, content:err});
+        }
+      }
+      else { resolve(params.data); }
+    });
+  }
+  startListen(params, deviceId) {
+    return new Promise(function (resolve, reject) {
+      resolve();
+    })  
+  }
+  stopListen(listener) {
+  }
+  wrapUp(connection) {
+    return new Promise(function (resolve, reject) {
+      resolve(connection);
+    });
+  }
+}
+exports.wolProcessor = wolProcessor;
+
 class socketIOProcessor {
   initiate(connection) {
     return new Promise(function (resolve, reject) {
@@ -313,35 +372,72 @@ class socketIOProcessor {
   }
   wrapUp(connection) {
     return new Promise(function (resolve, reject) {
-      resolve();
+      if (connection.connector != "" && connection.connector != undefined) {
+        connection.toConnect = false;
+        connection.connector.close();
+      }
+      resolve(connection);
     });
   }
 }
 exports.socketIOProcessor = socketIOProcessor;
+
 class webSocketProcessor {
-  initiate(connection) {
+  initiate() {
     return new Promise(function (resolve, reject) {
-      try {
-        if (connection.connector != "" && connection.connector != undefined) {
-          connection.connector.close();
-        } //to avoid opening multiple
-        connection.connector = io.connect(connection.descriptor);
-        resolve(connection);
-      }
-      catch (err) {
-        metaLog({type:LOG_TYPE.ERROR, content:'Error while intenting connection to the target device.'});
-        metaLog({type:LOG_TYPE.ERROR, content:err});
-      }
-    }); //to avoid opening multiple
+      resolve();
+    });
   }
   process(params) {
     return new Promise(function (resolve, reject) {
-      metaLog({type:LOG_TYPE.ERROR, content:params});
-      if (typeof (params.command) == 'string') { params.command = JSON.parse(params.command); }
-      metaLog({type:LOG_TYPE.ERROR, content:params});
-      if (params.command.call) {
-        params.connection.connector.emit(params.command.call, params.command.message);
-        resolve('');
+      metaLog({type:LOG_TYPE.VERBOSE, content:'Entering the processor:'});
+      if (typeof (params.command) == 'string') { params.command = JSON.parse(params.command); };
+      metaLog({type:LOG_TYPE.VERBOSE, content:params.command});
+      if (!params.connection) {params.connection = {}}
+      if  (!params.connection.connections) { params.connection.connections = []};
+      let connectionIndex = params.connection.connections.findIndex((con) => {return con.descriptor == params.command.connection});
+      metaLog({type:LOG_TYPE.VERBOSE, content:'Connection Index:' + connectionIndex});
+      if  (connectionIndex < 0) { //checking if connection exist
+        metaLog({type:LOG_TYPE.WARNING, content:'You need to create a listener to have a proper websocket connection.'});
+        resolve({'readystate':-1});
+      }
+      else if (params.command.message) {
+        if (typeof (params.command.message) != 'string') {params.command.message = JSON.stringify(params.command.message)}
+        try {
+          params.command.message = params.command.message.replace(/<__n__>/g, '\n');
+          metaLog({type:LOG_TYPE.VERBOSE, content:'Emitting: ' + params.command.message});
+          if (params.connection.connections[connectionIndex]) {
+            let theConnection = params.connection.connections[connectionIndex];
+            if (theConnection.connector && theConnection.connector.readyState != 1)
+            {
+              metaLog({type:LOG_TYPE.VERBOSE, content:"Waiting for WebScoket connection to be done"});
+              setTimeout(() => {
+                if (params.connection.connections) {
+                  connectionIndex = params.connection.connections.find((con) => {return con.descriptor == params.command.connection});
+                  theConnection = params.connection.connections[connectionIndex];
+                  metaLog({type:LOG_TYPE.VERBOSE, content:"Retrying to send the message"});
+                  if (theConnection && theConnection.connector && theConnection.connector.readyState == 1) {
+                    theConnection.connector.send(params.command.message)
+                  };
+                  if (theConnection && theConnection.connector && theConnection.connector.readyState) {
+                    resolve({'readystate':theConnection.connector.readyState});
+                  }
+                  else {resolve({'readystate':-1});}
+                }
+                else {resolve({'readystate':-1});}
+              }, 1000)
+            }
+            else {
+              theConnection.connector.send(params.command.message);
+              resolve({'readystate':theConnection.connector.readyState});
+            }
+          }
+        }
+        catch (err) {
+          metaLog({type:LOG_TYPE.WARNING, content:'Error while sending message to the target device.'});
+          metaLog({type:LOG_TYPE.WARNING, content:err});
+          resolve({'readystate':undefined, 'error':err});
+        }
       }
     });
   }
@@ -349,6 +445,8 @@ class webSocketProcessor {
     return new Promise(function (resolve, reject) {
       try {
         if (params.query) {
+          metaLog({type:LOG_TYPE.WARNING, content:params});
+          metaLog({type:LOG_TYPE.WARNING, content:JSONPath(params.query, params.data)});
           resolve(JSONPath(params.query, params.data));
         }
         else {
@@ -357,24 +455,105 @@ class webSocketProcessor {
       }
       catch (err) {
         metaLog({type:LOG_TYPE.ERROR, content:err});
+        resolve('');
       }
     });
   }
+  
   startListen(params, deviceId) {
     return new Promise(function (resolve, reject) {
-      params.connection.connector.on(params.command, (result) => { params._listenCallback(result, params.listener, deviceId); });
-      resolve('');
+      try {
+        if (!params.connection) {params.connection = {}}
+        if  (!params.connection.connections) { params.connection.connections = []};
+        if (typeof (params.command) == 'string') { params.command = JSON.parse(params.command); }
+        metaLog({type:LOG_TYPE.INFO, content:'Starting to listen with this params:'});
+        metaLog({type:LOG_TYPE.INFO, content:params});
+        metaLog({type:LOG_TYPE.INFO, content:params.command.connection});
+        if (params.command.connection)
+        {
+          let connectionIndex = params.connection.connections.findIndex((con)=> {return con.descriptor == params.command.connection});
+            try {
+            if (connectionIndex<0) {
+              let connector = new WebSocket(params.command.connection);
+              params.connection.connections.push({"descriptor": params.command.connection, "connector": connector});
+              connectionIndex = params.connection.connections.length - 1;
+            }
+            else {
+              if (params.connection.connections[connectionIndex] && params.connection.connections[connectionIndex].connector && params.connection.connections[connectionIndex].connector.readyState != 1) {
+                try {
+                  params.connection.connections[connectionIndex].connector.terminate();  
+                }
+                catch (err) {
+                  metaLog({type:LOG_TYPE.VERBOSE, content:'Disposing unused socket.'});
+                }  
+                params.connection.connections[connectionIndex].connector = new WebSocket(params.command.connection);;
+              }
+              else {
+                resolve();
+                return;
+              }
+            }
+            if (params.connection.connections[connectionIndex] && params.connection.connections[connectionIndex].connector) {
+              params.connection.connections[connectionIndex].connector.on('error', (result) => { 
+                metaLog({type:LOG_TYPE.WARNING, content:'Error event called on the webSocket.'});
+                metaLog({type:LOG_TYPE.VERBOSE, content:result});
+              });
+              params.connection.connections[connectionIndex].connector.on('close', (result) => { 
+                if (params.connection.connections) {
+                  metaLog({type:LOG_TYPE.VERBOSE, content:'Close event called on the webSocket with connection index:' + connectionIndex});
+                  metaLog({type:LOG_TYPE.VERBOSE, content:result});
+                }
+              });
+              params.connection.connections[connectionIndex].connector.on('open', (result) => { 
+                try {
+                  metaLog({type:LOG_TYPE.INFO, content:'Connection webSocket open.'});
+                  metaLog({type:LOG_TYPE.VERBOSE, content:'New Connection Index:' + connectionIndex});
+                  params.connection.connections[connectionIndex].connector.on((params.command.message?params.command.message:'message'), (result) => { 
+                    params._listenCallback(result, params.listener, deviceId); 
+                  });
+                }
+                catch (err) {
+                  metaLog({type:LOG_TYPE.WARNING, content:'Error while intenting connection to the target device.'});
+                  metaLog({type:LOG_TYPE.WARNING, content:err});
+                }
+              });
+              resolve('');
+            }
+          }
+          catch (err) {
+            metaLog({type:LOG_TYPE.WARNING, content:'Error while intenting connection to the target device.'});
+            metaLog({type:LOG_TYPE.WARNING, content:err});
+            resolve('');
+          }
+        }   
+      }
+      catch (err) {
+        metaLog({type:LOG_TYPE.ERROR, content:'Error with listener configuration.'});
+        metaLog({type:LOG_TYPE.ERROR, content:err});
+        resolve('');
+      }
+
     });
   }
   stopListen(params) {
+//    metaLog({type:LOG_TYPE.ERROR, content:params});
   }
-  wrapUp(connection) {
+
+  wrapUp(connection) { 
     return new Promise(function (resolve, reject) {
-      if (connection.connector != "" && connection.connector != undefined) {
-        connection.connector.close();
+      metaLog({type:LOG_TYPE.VERBOSE, content:'WebSocket WrapUp'});
+      if (connection && connection.connections) {
+        while (connection.connections.length > 0)
+        {
+          metaLog({type:LOG_TYPE.VERBOSE, content:'WebSocket WrapUp'});
+          //connection.connections[connection.connections.length-1]?connection.connections[connection.connections.length-1].terminate():"";
+          connection.connections[connection.connections.length-1] = null;
+          connection.connections.pop();
+        }
+        connection.connections = null;
       }
-      resolve(connection);
-    });
+      resolve();
+   })
   }
 }
 exports.webSocketProcessor = webSocketProcessor;

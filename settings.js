@@ -2,9 +2,11 @@ var settings =
 {
   'mqtt' : 'localhost',
   'mqtt_topic' : 'meta/',
-  'LogSeverity' : 'ERROR',
+  'LogSeverity' : "ERROR",
   'driverPrefix' : '.meta2 ', 
   'runtimeName' : '.meta',
+  'defaultPort' : '4015',
+  'mqttClientId' : 'meta',
   'drivers':
   [
     {
