@@ -1,0 +1,295 @@
+ 
+{  "name":"WebOS",
+    "manufacturer":"LG",
+    "type":"TV",
+    "version":8,
+    
+    "discover":{
+       "welcomeheadertext":"WebOS TV",
+       "welcomedescription":"powered by meta\nby JAC459",
+       "command":{"type":"static", "command":"$LocalDevices", "queryresult":"$[?(@.mac&&@.ip&&@.short=='_airplay._tcp.local')][?(@property === 'name' && @.match(/^\\[LG\\] webOS TV/i))]^"}        
+    },
+    "template":
+    {
+       "dynamicname":"DYNAMIK_INST_START DYNAMIK JSON.parse(\"$Result\").name.split(\"webOS \")[1].split(\".\")[0] + \" - \" + JSON.parse(\"$Result\").ip DYNAMIK_INST_END",
+       "dynamicid":"DYNAMIK_INST_START DYNAMIK JSON.parse(\"$Result\").ip DYNAMIK_INST_END",
+       
+        "persistedvariables":{
+            "FavoriteApps":"[]",
+            "RecentFav":"Recent",
+            "NumberLines":1,
+            "ClientKey":""
+        },
+        "labels":{
+            "CurrentStatus" : {"label":".", "actionlisten":"MyStatus", "listen":"MyState"}
+        },
+        "variables":{
+            "DeviceURI":"DYNAMIK_INST_START DYNAMIK JSON.parse(\"$Result\").ip + \":3000\" DYNAMIK_INST_END",
+            "AsyncMessage":"",
+            "AsyncId":0,
+            "AppList":"",
+            "MyStatus":"",
+            "MyState":"",
+            "InputList":"",
+            "AppId":"",
+            "DeviceMac":"DYNAMIK_INST_START DYNAMIK JSON.parse(\"$Result\").mac DYNAMIK_INST_END",
+            "InputWebSocket":"$InputWebSocket",
+            "VolumePlayed": 0
+        },
+        "listeners" : {
+            "WebOSListener" : {"type":"webSocket", "command":{"connection":"ws://$DeviceURI", "message": "message"}, "queryresult" : "",          
+                "evalwrite":[
+                    {"variable":"AsyncMessage","value":"DYNAMIK  (\"$Result\")"},
+                    {"variable":"ClientKey", "value":"DYNAMIK let res; let ck = \"$ClientKey\";if ($AsyncMessage.id == \"requestKey\" && $AsyncMessage.type != \"error\" && $AsyncMessage.payload[\"client-key\"]) {res = $AsyncMessage.payload[\"client-key\"];} else {res = \"$ClientKey\";}; res;"},
+                    {"variable":"InputList","value":"DYNAMIK let res; if ($AsyncMessage.id == \"GetInputsList\" && $AsyncMessage.type != \"error\") {res = JSON.stringify($AsyncMessage.payload)} else {res = JSON.stringify($InputList)}; res;"},
+                    {"variable":"AppList","value":"DYNAMIK let res; if ($AsyncMessage.id == \"GetApplicationsList\" && $AsyncMessage.type != \"error\") {res = JSON.stringify($AsyncMessage.payload)} else {res = JSON.stringify($AppList)}; res;"},
+                    {"variable":"VolumePlayed","value":"DYNAMIK let res; if ($AsyncMessage.id  == \"volumeChange\" && $AsyncMessage.type != \"error\") {res = $AsyncMessage.payload[\"volume\"]} else {res = $VolumePlayed}; res;"},
+                    {"variable":"InputWebSocket", "value":"DYNAMIK let res;if ($AsyncMessage.id == \"InputSocketRequest\" && $AsyncMessage.type != \"error\") {res = $AsyncMessage.payload[\"socketPath\"]} else {res= \"$InputWebSocket\"}; res;"},
+                    {"variable":"ClientKey","value":"DYNAMIK let res = \"$ClientKey\"; if ($AsyncMessage.type == \"error\") {if ($AsyncMessage.error.startsWith(\"401 \")) {res = \"\"}}; res;"},
+                    {"variable":"AsyncId","value":"DYNAMIK $AsyncId + 1"}
+                ],
+                "evaldo":[
+                    {"test":"DYNAMIK  ($AsyncMessage.id == \"requestKey\" && $AsyncMessage.payload[\"client-key\"])?true:false","then":"__BACKUP", "or":""},
+                    {"test":"DYNAMIK ($AsyncMessage.id == \"InputSocketRequest\" && $AsyncMessage.type != \"error\")?true:false","then":"__FINALISETUP", "or":""},
+                    {"test":"DYNAMIK if ($AsyncMessage.type == \"error\") {if ($AsyncMessage.error.startsWith(\"409 \")) {false;} else {true}} else {false}","then":"__RESTART", "or":""},
+                    {"test":"DYNAMIK ($AsyncMessage.id  == \"volumeChange\" && $AsyncMessage.type != \"error\")?true:false","then":"__VOLUMECHANGED", "or":""},
+                    {"test":"DYNAMIK ($AsyncMessage.id == \"registered\" && $AsyncMessage.type != \"error\")?true:false","then":"__SETDATA", "or":""}
+                ]   
+
+            },
+            "WebOSInputListener" : {"type":"webSocket", "command":{"connection":"$InputWebSocket", "message": "message"}, "queryresult" : "", "evalwrite":[]}
+        },
+        "sliders": {
+            "VOLUME": {"unit": "db", "listen": "VolumePlayed", "evaldo": [{"test": true, "then": "__VOLUMESET", "or": ""}]}
+        },
+        "buttons":{          
+            "POWER ON": {"type":"wol", "command":"$DeviceMac", "queryresult":"", "evaldo":[{"test":true,"then":"__RESTART", "or":""}], "evalwrite":[{"variable":"MyState","value":"Intenting connection to your TV..."}]},
+            "POWER OFF": {"type":"webSocket", "command":"DYNAMIK let rep = {\"connection\": \"ws://$DeviceURI\", \"message\":{\"type\":\"request\",\"id\":\"turnoff\",\"uri\":\"ssap://system/turnOff\"}}; rep;", "queryresult":"", "evalwrite":[{"variable":"InputWebSocket","value":"$InputWebSocket"}], "evaldo":[{"test":true,"then":"__CLEANUP", "or":""}]},
+            "__RESTART": {"type":"static", "command":".", "evaldo":[{"test":true,"then":"__INITIALISE", "or":""}, {"test":true,"then":"__SETUP", "or":""}]},
+            "__BACKUP": {"type":"static", "command":".", "evaldo":[{"test":true,"then":"__PERSIST", "or":""}, {"test":true,"then":"__RESTART", "or":""}]},
+            "__SETUP": {"type":"static", "command":".", "evaldo":[{"test":"DYNAMIK let ck = \"$ClientKey\"; (ck.length>0)?true:false","then":"__REGISTER", "or":"__REQUESTKEY"}]}, 
+            "__FINALISETUP": {"type":"static", "command":".", "evaldo":[{"test":true,"then":"__INITIALISE", "or":""}], "evalwrite":[{"variable":"MyState","value":"Neeo is successfully connected to your TV."}]}, 
+            "__REQUESTKEY": {"type":"webSocket", "command":{"connection":"ws://$DeviceURI", "message": "{\"type\":\"register\",\"id\":\"requestKey\",\"payload\":{\"forcePairing\":false,\"pairingType\":\"PROMPT\",\"manifest\":{\"manifestVersion\":1,\"appVersion\":\"1.1\",\"signed\":{\"created\":\"20140509\",\"appId\":\"com.lge.test\",\"vendorId\":\"com.lge\",\"localizedAppNames\":{\"\":\"LG Remote App\",\"ko-KR\":\"리모컨 앱\",\"zxx-XX\":\"ЛГ Rэмotэ AПП\"},\"localizedVendorNames\":{\"\":\"LG Electronics\"},\"permissions\":[\"TEST_SECURE\",\"CONTROL_INPUT_TEXT\",\"CONTROL_MOUSE_AND_KEYBOARD\",\"READ_INSTALLED_APPS\",\"READ_LGE_SDX\",\"READ_NOTIFICATIONS\",\"SEARCH\",\"WRITE_SETTINGS\",\"WRITE_NOTIFICATION_ALERT\",\"CONTROL_POWER\",\"READ_CURRENT_CHANNEL\",\"READ_RUNNING_APPS\",\"READ_UPDATE_INFO\",\"UPDATE_FROM_REMOTE_APP\",\"READ_LGE_TV_INPUT_EVENTS\",\"READ_TV_CURRENT_TIME\"],\"serial\":\"2f930e2d2cfe083771f68e4fe7bb07\"},\"permissions\":[\"LAUNCH\",\"LAUNCH_WEBAPP\",\"APP_TO_APP\",\"CLOSE\",\"TEST_OPEN\",\"TEST_PROTECTED\",\"CONTROL_AUDIO\",\"CONTROL_DISPLAY\",\"CONTROL_INPUT_JOYSTICK\",\"CONTROL_INPUT_MEDIA_RECORDING\",\"CONTROL_INPUT_MEDIA_PLAYBACK\",\"CONTROL_INPUT_TV\",\"CONTROL_POWER\",\"READ_APP_STATUS\",\"READ_CURRENT_CHANNEL\",\"READ_INPUT_DEVICE_LIST\",\"READ_NETWORK_STATE\",\"READ_RUNNING_APPS\",\"READ_TV_CHANNEL_LIST\",\"WRITE_NOTIFICATION_TOAST\",\"READ_POWER_STATE\",\"READ_COUNTRY_INFO\"],\"signatures\":[{\"signatureVersion\":1,\"signature\":\"eyJhbGdvcml0aG0iOiJSU0EtU0hBMjU2Iiwia2V5SWQiOiJ0ZXN0LXNpZ25pbmctY2VydCIsInNpZ25hdHVyZVZlcnNpb24iOjF9.hrVRgjCwXVvE2OOSpDZ58hR+59aFNwYDyjQgKk3auukd7pcegmE2CzPCa0bJ0ZsRAcKkCTJrWo5iDzNhMBWRyaMOv5zWSrthlf7G128qvIlpMT0YNY+n/FaOHE73uLrS/g7swl3/qH/BGFG2Hu4RlL48eb3lLKqTt2xKHdCs6Cd4RMfJPYnzgvI4BNrFUKsjkcu+WD4OO2A27Pq1n50cMchmcaXadJhGrOqH5YmHdOCj5NSHzJYrsW0HPlpuAx/ECMeIZYDh6RMqaFM2DXzdKX9NmmyqzJ3o/0lkk/N97gfVRLW5hA29yeAwaCViZNCP8iC9aO0q9fQojoa7NQnAtw==\"}]}}}"},
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "__REGISTER": {"type":"webSocket", "command":"{\"connection\": \"ws://$DeviceURI\", \"message\":{\"type\":\"register\",\"id\":\"registered\",\"payload\":{\"forcePairing\":false,\"pairingType\":\"PROMPT\",\"client-key\":\"$ClientKey\",\"manifest\":{\"manifestVersion\":1,\"appVersion\":\"1.1\",\"signed\":{\"created\":\"20140509\",\"appId\":\"com.lge.test\",\"vendorId\":\"com.lge\",\"localizedAppNames\":{\"\":\"LG Remote App\",\"ko-KR\":\"리모컨 앱\",\"zxx-XX\":\"ЛГ Rэмotэ AПП\"},\"localizedVendorNames\":{\"\":\"LG Electronics\"},\"permissions\":[\"TEST_SECURE\",\"CONTROL_INPUT_TEXT\",\"CONTROL_MOUSE_AND_KEYBOARD\",\"READ_INSTALLED_APPS\",\"READ_LGE_SDX\",\"READ_NOTIFICATIONS\",\"SEARCH\",\"WRITE_SETTINGS\",\"WRITE_NOTIFICATION_ALERT\",\"CONTROL_POWER\",\"READ_CURRENT_CHANNEL\",\"READ_RUNNING_APPS\",\"READ_UPDATE_INFO\",\"UPDATE_FROM_REMOTE_APP\",\"READ_LGE_TV_INPUT_EVENTS\",\"READ_TV_CURRENT_TIME\"],\"serial\":\"2f930e2d2cfe083771f68e4fe7bb07\"},\"permissions\":[\"LAUNCH\",\"LAUNCH_WEBAPP\",\"APP_TO_APP\",\"CLOSE\",\"TEST_OPEN\",\"TEST_PROTECTED\",\"CONTROL_AUDIO\",\"CONTROL_DISPLAY\",\"CONTROL_INPUT_JOYSTICK\",\"CONTROL_INPUT_MEDIA_RECORDING\",\"CONTROL_INPUT_MEDIA_PLAYBACK\",\"CONTROL_INPUT_TV\",\"CONTROL_POWER\",\"READ_APP_STATUS\",\"READ_CURRENT_CHANNEL\",\"READ_INPUT_DEVICE_LIST\",\"READ_NETWORK_STATE\",\"READ_RUNNING_APPS\",\"READ_TV_CHANNEL_LIST\",\"WRITE_NOTIFICATION_TOAST\",\"READ_POWER_STATE\",\"READ_COUNTRY_INFO\"],\"signatures\":[{\"signatureVersion\":1,\"signature\":\"eyJhbGdvcml0aG0iOiJSU0EtU0hBMjU2Iiwia2V5SWQiOiJ0ZXN0LXNpZ25pbmctY2VydCIsInNpZ25hdHVyZVZlcnNpb24iOjF9.hrVRgjCwXVvE2OOSpDZ58hR+59aFNwYDyjQgKk3auukd7pcegmE2CzPCa0bJ0ZsRAcKkCTJrWo5iDzNhMBWRyaMOv5zWSrthlf7G128qvIlpMT0YNY+n/FaOHE73uLrS/g7swl3/qH/BGFG2Hu4RlL48eb3lLKqTt2xKHdCs6Cd4RMfJPYnzgvI4BNrFUKsjkcu+WD4OO2A27Pq1n50cMchmcaXadJhGrOqH5YmHdOCj5NSHzJYrsW0HPlpuAx/ECMeIZYDh6RMqaFM2DXzdKX9NmmyqzJ3o/0lkk/N97gfVRLW5hA29yeAwaCViZNCP8iC9aO0q9fQojoa7NQnAtw==\"}]}}}}",
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+ 
+            "__SETDATA": {"type":"static", "command":".", "evaldo":[{"test":true,"then":"__REQUESTINPUTSOCKET", "or":""}, {"test":true,"then":"__REFRESHAPPLIST", "or":""}, {"test":true,"then":"__REFRESHINPUTLIST", "or":""}, {"test":true,"then":"__SHOWOFF", "or":""}]},
+            "__REFRESHAPPLIST": {"label":"", "type":"webSocket", "command":{"connection": "ws://$DeviceURI", "message":{"type": "request", "id": "GetApplicationsList", "uri": "ssap://com.webos.applicationManager/listLaunchPoints", "payload": {}}},
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "__REFRESHINPUTLIST": {"label":"", "type":"webSocket", "command":{"connection": "ws://$DeviceURI", "message":{"type": "request", "id": "GetInputsList", "uri": "ssap://tv/getExternalInputList", "payload": {}}},
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },   
+
+            "__REQUESTINPUTSOCKET" : {"type":"webSocket", "command":"DYNAMIK let rep = {\"connection\": \"ws://$DeviceURI\", \"message\":{\"type\":\"request\",\"id\":\"InputSocketRequest\",\"uri\":\"ssap://com.webos.service.networkinput/getPointerInputSocket\"}}; rep;",
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+
+            "__VOLUMECHANGED": {"type":"static", "command":".",
+                "evalwrite":[{"variable":"MyStatus","value":"DYNAMIK let vol = $VolumePlayed; '||'.repeat(vol) + '--'.repeat(Math.round((100-vol)/3))"}]
+            },
+            "__VOLUMESET": {"type":"webSocket", "command":"DYNAMIK let rep = {\"connection\": \"ws://$DeviceURI\", \"message\":{\"type\":\"request\",\"id\":\"volumeChange\",\"uri\":\"ssap://audio/setVolume\"}}; rep.message.payload = {\"volume\": $VolumePlayed}; rep;",
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "VOLUME UP": {"type":"webSocket", "command":"DYNAMIK let rep = {\"connection\": \"ws://$DeviceURI\", \"message\":{\"type\":\"request\",\"id\":\"volumeChange\",\"uri\":\"ssap://audio/volumeUp\"}}; rep;",
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "VOLUME DOWN": {"type":"webSocket", "command":"DYNAMIK let rep = {\"connection\": \"ws://$DeviceURI\", \"message\":{\"type\":\"request\",\"id\":\"volumeChange\",\"uri\":\"ssap://audio/volumeDown\"}}; rep;",
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+    
+            "__SHOWOFF": {"type":"webSocket", "command":"DYNAMIK let rep = {\"connection\": \"ws://$DeviceURI\", \"message\":{\"type\":\"request\",\"id\":\"AsyncId\",\"uri\":\"ssap://system.notifications/createToast\", \"payload\":{\"message\":\"TV Controlled by META\"}}}; rep.message.id = \"showoff_\" + \"$AsyncId\"; rep;",
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+
+            "CURSOR LEFT": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:LEFT<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Left pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "CURSOR RIGHT": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:RIGHT<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Right pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "CURSOR UP": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:UP<__n__><__n__>"},
+            "evalwrite":[{"variable":"MyStatus","value":"Up pressed."}],
+            "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "CURSOR DOWN": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:DOWN<__n__><__n__>"},
+            "evalwrite":[{"variable":"MyStatus","value":"Down pressed."}],
+            "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "CURSOR ENTER": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:ENTER<__n__><__n__>"},
+            "evalwrite":[{"variable":"MyStatus","value":"Enter pressed."}],
+            "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+
+            "BACK": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:BACK<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Back pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "MENU": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:MENU<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Menu pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "GUIDE": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:HOME<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Guide pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "EXIT": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:EXIT<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Exit pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "INFO": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:INFO<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Info pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+
+            "DIGIT 0": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:0<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"0 pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "DIGIT 1": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:1<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"1 pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "DIGIT 2": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:2<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"2 pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "DIGIT 3": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:3<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"3 pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "DIGIT 4": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:4<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"4 pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "DIGIT 5": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:5<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"5 pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "DIGIT 6": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:6<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"6 pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "DIGIT 7": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:7<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"7 pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "DIGIT 8": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:8<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"8 pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "DIGIT 9": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:9<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"9 pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+
+            "FUNCTION RED": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:RED<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Red pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "FUNCTION GREEN": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:GREEN<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Green pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "FUNCTION YELLOW": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:YELLOW<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Yellow pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "FUNCTION BLUE": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:BLUE<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Blue pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "MUTE TOGGLE": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:MUTE<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Mute Toggle pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+
+            "CHANNEL UP": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:CHANNELUP<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Channel Up pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "CHANNEL DOWN": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:CHANNELDOWN<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Channel Down pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+
+            "PLAY TOGGLE": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:PLAY<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Play Toggle pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "PLAY": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:PLAY<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Play pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "PAUSE": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:PAUSE<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Pause pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "STOP": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:STOP<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Stop pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "PREVIOUS": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:REWIND<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Previous pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "NEXT": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:FASTFORWARD<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Next pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+
+            "NETFLIX": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:MUTE<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Netflix pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "AMAZON": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:MUTE<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Amazon pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "HULU": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:MUTE<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Hulu pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "SPOTIFY": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:MUTE<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Spotify pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            },
+            "GOOGLE PLAY": {"type":"webSocket", "command":{"connection": "$InputWebSocket", "message":"type:button<__n__>name:MUTE<__n__><__n__>"},
+                "evalwrite":[{"variable":"MyStatus","value":"Google Play pressed."}],
+                "evaldo":[{"test":"DYNAMIK  if (JSON.parse(\"$Result\").readystate!=1) {true} else {false}","then":"__RESTART", "or":""}]
+            }
+        },
+        "directories":{
+                "Applications": {"label":"", 
+                "feeders": {
+                "Applications":{"label":"Browse", "commandset": [
+                    {"type":"static", "command":"$FavoriteApps", "itemtype":"tile", "queryresult":"$.*", "itemimage":"DYNAMIK if (\"$Result\" != \"undefined\") {JSON.parse(\"$Result\").icon} else {\"https://www.lg.com/lg5-common-gp/images/common/header/logo-b2c.jpg\"}", "itemaction": "Launch", "evalwrite":[{"variable":"AppId","value":"DYNAMIK JSON.parse(\"$Result\").id"}]},
+                    {"type":"static", "command":"$InputList", "itemUI":"DYNAMIK if (\"$RecentFav\" == \"Recent\") {\"reload\"} else {\"\"}","queryresult":"$.devices.*", "itemname":"DYNAMIK JSON.parse(\"$Result\").label", "itemlabel":"DYNAMIK if (JSON.parse(\"$Result\").connected) {\"Connected Device\"} else {\"No Connected Device\"}", "itemimage":"DYNAMIK JSON.parse(\"$Result\").icon", "itemaction": "Launch", "evalwrite":[{"variable":"AppId","value":"DYNAMIK JSON.parse(\"$Result\").appId"}, {"variable":"FavoriteApps","value":"DYNAMIK let fav = $FavoriteApps; if (\"$RecentFav\" == \"Recent\") {if (!Array.isArray(fav)) {fav = []};if (fav.findIndex((fa)=>{return fa.name == JSON.parse(\"$Result\").label})<0) {fav.unshift({\"name\":JSON.parse(\"$Result\").label, \"icon\":JSON.parse(\"$Result\").icon, \"id\":JSON.parse(\"$Result\").appId})}; if (fav.length>2*$NumberLines) {fav.pop();}}; JSON.stringify(fav);"}]},
+                    {"type":"static", "command":"$AppList", "itemUI":"DYNAMIK if (\"$RecentFav\" == \"Recent\") {\"reload\"} else {\"\"}", "queryresult":"$.launchPoints.*", "itemname":"DYNAMIK JSON.parse(\"$Result\").title", "itemlabel":"DYNAMIK JSON.parse(\"$Result\").launchPointId", "itemimage":"DYNAMIK JSON.parse(\"$Result\").icon", "itemaction": "Launch", "evalwrite":[{"variable":"AppId","value":"DYNAMIK JSON.parse(\"$Result\").id"}, {"variable":"FavoriteApps","value":"DYNAMIK let fav = $FavoriteApps; if (\"$RecentFav\" == \"Recent\") {if (!Array.isArray(fav)) {fav = []};if (fav.findIndex((fa)=>{return fa.name == JSON.parse(\"$Result\").title})<0) {fav.unshift({\"name\":JSON.parse(\"$Result\").title, \"icon\":JSON.parse(\"$Result\").icon, \"id\":JSON.parse(\"$Result\").id})}; if (fav.length>2*$NumberLines) {fav.pop();}}; JSON.stringify(fav);"}]},
+                    {"type":"static", "command":[{}], "queryresult":"$.*", "itemname":"settings", "itemlabel":"Configure your driver.", "itemimage":"https://raw.githubusercontent.com/jac459/meta-roon/main/pics/settings.jpg", "evalnext":[{"test":"true","then":"Settings","or":""}]}
+                   ]
+                },
+                "Settings":{"label":"Browse", "commandset": [
+                    {"type":"static", "command":[{"name":"Recents or Favorites"}], "itemtype":"button", "itemUI":false, "queryresult":"$.*", "itemname":"DYNAMIK JSON.parse(\"$Result\").name"}, 
+                    {"type":"static", "command":[{"name":"Recent"}, {"name":"Favorites"}], "queryresult":"$.*", "itemname":"DYNAMIK JSON.parse(\"$Result\").name", "itemlabel":"DYNAMIK if (JSON.parse(\"$Result\").name == \"Recent\") {\"Display recent items\"} else {\"Display Favorites items\"}", "itemaction":"Persist", "itemimage":"DYNAMIK if (JSON.parse(\"$Result\").name == \"$RecentFav\") {\"https://raw.githubusercontent.com/jac459/meta-webosLGTV/main/pics/selected.jpg\"} else {\"https://raw.githubusercontent.com/jac459/meta-webosLGTV/main/pics/unselected.jpg\"}", "itemUI":"reload", "evalwrite":[{"variable":"RecentFav","value":"DYNAMIK JSON.parse(\"$Result\").name"}, {"variable":"FavoriteApps","value":"DYNAMIK let fav = $FavoriteApps; if (JSON.parse(\"$Result\").name == \"Recent\") {fav = [];}; JSON.stringify(fav);"}]},
+                    {"type":"static", "command":[{"name":"Number of lines"}], "itemtype":"button", "itemUI":false, "queryresult":"$.*", "itemname":"DYNAMIK JSON.parse(\"$Result\").name"},
+                    {"type":"static", "command":[{"name":"No Line", "number":0}, {"name":"One Line", "number":1}, {"name":"Two Lines", "number":2}, {"name":"Three Lines", "number":3}], "queryresult":"$.*", "itemname":"DYNAMIK JSON.parse(\"$Result\").name", "itemaction":"Persist", "itemimage":"DYNAMIK if (JSON.parse(\"$Result\").number == $NumberLines) {\"https://raw.githubusercontent.com/jac459/meta-webosLGTV/main/pics/selected.jpg\"} else {\"https://raw.githubusercontent.com/jac459/meta-webosLGTV/main/pics/unselected.jpg\"}", "itemUI":"reload", "evalwrite":[{"variable":"NumberLines","value":"DYNAMIK let nl = JSON.parse(\"$Result\").number; if (nl != undefined) {nl} else {$NumberLines}"}, {"variable":"FavoriteApps","value":"DYNAMIK let fa = $FavoriteApps; if (fa.length>(JSON.parse(\"$Result\").number*2)) {let nfa = [];let i; for (i=0; i < (JSON.parse(\"$Result\").number*2);i++) {nfa.push(fa[i])}; fa = nfa;};JSON.stringify(fa);"}]}
+                ]},
+                "Persist":{"label":"Browse", "commandset": [
+                    {"type":"static", "command":".", "evaldo":[{"test":true,"then":"__PERSIST", "or":""}]}
+                    ]
+                },
+                "Launch":{"label":"Browse", "commandset": [
+                    {"type":"webSocket", "command":"DYNAMIK let rep = {\"connection\": \"ws://$DeviceURI\", \"message\":{\"type\":\"request\",\"id\":\"AppLaunch\",\"uri\":\"ssap://system.launcher/launch\", \"payload\":{\"id\":\"$AppId\"}}}; rep;"}
+                    ]}
+                }
+            }
+        }
+    }
+}   
+

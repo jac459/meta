@@ -104,6 +104,7 @@
       },
       "buttons":{
           "VOLUME UP": {"label":"", "type":"static", "command":"", "evalwrite":[{"variable":"VolumePlayed","value":"DYNAMIK (Number($VolumePlayed)<95)?Number($VolumePlayed)+5:100"}], "evaldo":[{"test":true, "then":"__VOLUMESET", "or":""}]},
+          "MUTE TOGGLE": {"label":"", "type":"mqtt", "command":"DYNAMIK let op = $Output; let mess ={\"transport\":{\"output\":op, \"is_muted\":true}}; let toSend = {\"topic\":\"meta/roon\", \"message\":\"\"}; toSend.message = mess; toSend;"},
           "VOLUME DOWN": {"label":"", "type":"static", "command":"", "evalwrite":[{"variable":"VolumePlayed","value":"DYNAMIK (Number($VolumePlayed)>5)?Number($VolumePlayed)-5:0"}], "evaldo":[{"test":true, "then":"__VOLUMESET", "or":""}]},
           "POWER ON": {"label":"", "type":"static", "command":"", "evaldo":[{"test":true,"then":"__INITIALISE", "or":""}]},
           "POWER OFF": {"label":"", "type":"static", "command":"", "evaldo":[{"test":true,"then":"__CLEANUP", "or":""}]},
@@ -131,7 +132,7 @@
             "feeders": {
               "Outputs":{"label":"", "commandset": [
                 {"type":"static", "command":".", "itemtype":"tile", "itemaction":"", "itemUI":"","itemimage":"$BaseImageURLROON.jpg"},
-                {"type":"static", "command":"$MyCurrentZone", "queryresult":"$.outputs.*", "itemname":"DYNAMIK JSON.parse(\"$Result\").display_name", "itemlabel":"Zone Output", "itemaction":"OutputSet", "itemimage":"$BaseImageURLoutput.jpg"}
+                {"type":"static", "command":"$MyCurrentZone", "queryresult":"$.outputs.*", "itemname":"DYNAMIK JSON.parse(\"$Result\").display_name", "itemlabel":"Zone Output", "itemUI":"reload", "itemaction":"OutputSet", "itemimage":"DYNAMIK  if (JSON.parse(\"$Result\").output_id == $Output.output_id) {\"$BaseImageURLselected.jpg\"} else {\"$BaseImageURLunselected.jpg\"}"}
               ]},
               "OutputSet":{"label":"", "commandset": [{"type":"static", "command":"SResult", "evalwrite":[{"variable":"Output","value":"$Result"}]}]}
             }
