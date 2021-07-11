@@ -8,7 +8,6 @@ const rpc = require('json-rpc2');
 const lodash = require('lodash');
 const { parserXMLString, xmldom } = require("./metaController");
 const WebSocket = require('ws');
-//const mqtt = require('mqtt');
 const got = require('got');
 const wol = require('wol');
 const settings = require(path.join(__dirname,'settings'));
@@ -797,14 +796,19 @@ class cliProcessor {
   }
   process(params) {
     return new Promise(function (resolve, reject) {
-      exec(params.command, (stdout, stderr) => {
-        if (stdout) {
-          resolve(stdout);
-        }
-        else {
-          resolve(stderr);
-        }
-      });
+      try {
+        exec(params.command, (stdout, stderr) => {
+          if (stdout) {
+            resolve(stdout);
+          }
+          else {
+            resolve(stderr);
+          }
+        });
+      }
+      catch (err) {
+        resolve(err);
+      }
     });
   }
   query(params) {
@@ -817,13 +821,7 @@ class cliProcessor {
             let modifier = params.query.slice(params.query.lastIndexOf('/')+1);
             metaLog({type:LOG_TYPE.VERBOSE, content:"RegEx literal : " + literal + ", regEx modifier : " + modifier});
             let regularEx = new RegExp(literal, modifier);
-           // let result = params.data.toString().match(regularEx);
-           // if (result != null) {
               resolve(params.data.toString().match(regularEx));
-           // }
-           // else {
-           //   resolve();
-           // }
           }
           else {
             resolve(params.data.toString())
@@ -831,7 +829,7 @@ class cliProcessor {
         }
         else {resolve();}
       }
-      catch {
+      catch (err) {
         metaLog({type:LOG_TYPE.ERROR, content:'error in string.match regex :' + params.query + ' processing of :' + params.data});
         metaLog({type:LOG_TYPE.ERROR, content:err});
       }

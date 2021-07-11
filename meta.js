@@ -10,8 +10,8 @@ const find = require('local-devices');
 var discoveryBuffer = __dirname + '/resultsDiscovery.json'
 
 const fs = require('fs');
-var activatedModule = path.join(__dirname,'activated');
-if (settings.drivers[0].variables.ActivatedLib) {activatedModule = settings.drivers[0].variables.ActivatedLib;}
+var activatedModule = path.join(__dirname,'active');
+if (settings.activeLibrary) {activatedModule = settings.activeLibrary;}
 const BUTTONHIDE = '__';
 const DATASTOREEXTENSION = 'DataStore.json';
 const DEFAULT = 'default'; //NEEO SDK deviceId default value for devices
@@ -244,7 +244,6 @@ function getDataStorePath(filename) {
 function createDevices () {
   return new Promise(function (resolve, reject) {
     getActivatedDrivers().then((drivers) => {
-      drivers = drivers.concat(settings.drivers);
       const driverCreationTable = [];
       drivers.forEach((driver) => {
         driverCreationTable.push(executeDriverCreation(driver))
