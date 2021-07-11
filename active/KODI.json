@@ -1,0 +1,1311 @@
+{ "name":"KODIPlayer",
+   "manufacturer":"Tono",
+   "type":"MEDIAPLAYER",
+   "version":19,
+   "discover":{
+     "welcomeheadertext":"Choose your KODI Instance",
+     "welcomedescription":"powered by meta\nby JAC",
+     "command": {
+      "type": "static",
+      "command": "$LocalDevices",
+      "queryresult": [
+        "$.*[?(@.name=='xbmc-jsonrpc-h')]^[?(@property === 'addresses' && @[0].match(/./i))]^"
+     ]
+    }  
+  },
+  "template" : {
+     "name": "KODIPlayer",
+     "type":"MEDIAPLAYER",
+     "dynamicname": "DYNAMIK_INST_START DYNAMIK JSON.parse(\"$Result\").name DYNAMIK_INST_END",
+     "dynamicid": "DYNAMIK_INST_START DYNAMIK JSON.parse(\"$Result\").fullname DYNAMIK_INST_END",
+      "manufacturer": "Tono",
+      "version": 19,
+      "listeners" : {
+         "KODIListener" : 
+            {"type":"webSocket", "command":{"connection":"ws://$MyKODIIp:$RPCPort", "message": "message"}, "queryresult" : "",          
+            "evaldo":[ 
+                  {"test":"DYNAMIK ( (\"$Result\" != \"\") && (JSON.parse(\"$Result\").method == \"Player.OnPause\") && JSON.parse(\"$Result\").params.data.player.playerid == 1)", "then":"__SetPause", "or":""},
+                  {"test":"DYNAMIK ( (\"$Result\" != \"\") && (JSON.parse(\"$Result\").method == \"Player.OnResume\") && JSON.parse(\"$Result\").params.data.player.playerid == 1)", "then":"__SetPlaying", "or":""},
+                  {"test":"DYNAMIK ( (\"$Result\" != \"\") && (JSON.parse(\"$Result\").method == \"Player.OnPlay\") && JSON.parse(\"$Result\").params.data.player.playerid == 1)", "then":"__SetPlaying", "or":""},
+                  {"test":"DYNAMIK ( (\"$Result\" != \"\") && (JSON.parse(\"$Result\").method == \"Player.OnStop\"))", "then":"__SetStopped", "or":""},
+                  {"test":"DYNAMIK ( (\"$Result\" != \"\") && (JSON.parse(\"$Result\").method == \"System.OnQuit\"))", "then":"__SYSTEMSTOP", "or":""},
+                  {"test":"DYNAMIK ( (\"$Result\" != \"\") && (JSON.parse(\"$Result\").method == \"Application.OnVolumeChanged\"))", "then":"__GetPlayerID", "or":""}
+               ]
+            },
+         "KODIPlayerid" : 
+            {"type":"static", "command":"", "queryresult" : "",          
+            "pooltime":"5000", "poolduration":"",
+            "evaldo":[ 
+                  {"test":true, "then":"__GetPlayerID", "or":""}
+               ]
+            },
+         "KODIInfo" : 
+            {"label":"",
+            "type":"http-get",
+            "command":"http://$MyKODIIp:$MyKODIPort/jsonrpc?request={\"jsonrpc\": \"2.0\", \"id\": \"Getinfi-items\",\"method\":\"XBMC.GetInfoLabels\",\"params\": {\"labels\":[\"Player.PlaySpeed\",\"Player.Title\",\"Player.FinishTime\", \"VideoPlayer.OriginalTitle\",\"VideoPlayer.Title\",\"VideoPlayer.TVShowTitle\",\"VideoPlayer.Time\",\"VideoPlayer.Duration\"]}}",
+            "queryresult":"$.",
+            "pooltime":"10000", "poolduration":"",
+            "evalwrite" : [ 
+               {"variable" : "Player_Duration",     "value" : "DYNAMIK JSON.parse(\"$Result\")[0].result[\"VideoPlayer.Duration\"]"},
+               {"variable" : "Player_FinishTime",   "value" : "DYNAMIK JSON.parse(\"$Result\")[0].result[\"Player.FinishTime\"]"},
+               {"variable" : "Player_Time",         "value" : "DYNAMIK JSON.parse(\"$Result\")[0].result[\"VideoPlayer.Time\"]"},
+               {"variable" : "Player_OriginalTitle","value" : "DYNAMIK JSON.parse(\"$Result\")[0].result[\"VideoPlayer.OriginalTitle\"]"},
+               {"variable" : "Player_Title",        "value" : "DYNAMIK JSON.parse(\"$Result\")[0].result[\"VideoPlayer.Title\"]"},
+               {"variable" : "Player_TVShowTitle",  "value" : "DYNAMIK JSON.parse(\"$Result\")[0].result[\"VideoPlayer.TVShowTitle\"]"},
+               {"variable" : "Player_PlaySpeed",    "value" : "DYNAMIK JSON.parse(\"$Result\")[0].result[\"Player.PlaySpeed\"]"}                 ]
+            }
+
+      },
+      "variables":{
+         "IPV6": "",
+         "MyKODIIp":"DYNAMIK_INST_START DYNAMIK  (JSON.parse(\"$Result\").addresses[0].length<16)?JSON.parse(\"$Result\").addresses[0]:\"[\"+JSON.parse(\"$Result\").addresses[0]+\"]\" DYNAMIK_INST_END",
+         "MyKODIPort":"DYNAMIK_INST_START DYNAMIK JSON.parse(\"$Result\").port DYNAMIK_INST_END",
+         "KODIREQ":"",
+         "RPCPort":"9090",
+         "TVShowTitle": "", 
+         "TVShowid": "",
+         "TVShowBanner":"",   
+         "SeasonName":"",
+         "Seasonid":"",
+         "EpisodeName":"",
+         "Episodeid":"",
+         "Episodeimage":"",
+         "MovieTitle":"",
+         "Movieid":"",
+         "MovieBanner":"",
+         "SetTitle":"",
+         "Setid": "",
+         "Source":"",
+         "File":"", 
+         "ReturnMenu":"",
+         "VideoRootFile":"",   
+         "VideoRootFileType":"", 
+         "VideoDirectory1":"",
+         "VideoDirectory2":"",
+         "VideoDirectory3":"",
+         "VideoDirectory4":"",
+         "VideoDirectory5":"",
+         "VideoDirectory6":"",
+         "VideoFileType":"", 
+         "VideoFile":"",     
+         "VideoPlayFile":"",  
+         "VideoBanner":"",   
+         "Window_ID":"", 
+         "CheckWindow_ID":"", 
+         "Fullscreen_ID":"12005",
+         "PlayerID": 0,
+         "PlayerSeek": "", 
+         "MYRESULT": "", 
+         "MyStatus":"Initial",
+         "CacheBuilt": 0,
+         "CacheResidency": 0,
+         "CURSOR":"",
+         "Player_Title":"",
+         "Player_PlaySpeed":"",
+         "Player_FinishTime":"",
+         "Player_OriginalTitle":"",
+         "Player_TVShowTitle":"",
+         "Player_Time":"",
+         "Player_Duration":"",
+         "ShowThumbnail":true,
+         "SetShutdownCommand":"\"System.Shutdown\"",
+         "SetShutdownmenuCommand":"\"GUI.ActivateWindow\",\"params\":{\"window\": \"shutdownmenu\"}"
+      },
+      "persistedvariables":{
+         "ShowThumbnail":true,
+         "ShutdownCommand":"\"GUI.ActivateWindow\",\"params\":{\"window\": \"shutdownmenu\"}",
+         "ShutdownMenu":true,
+         "ShutdownImmed": "",
+         "WatchFilter":"",
+         "ShowWatched":""
+      },
+         "switches":{
+            "Thumbnails" : {"label":"", "listen":"ShowThumbnail"}
+          },  
+      
+            "labels": {
+               "PlayerID": {"label": "MyPlayerID","listen": "PlayerID"}, 
+               "MyStatus": {"label": "","listen": "MyStatus"},
+               "Player_Title": {"label": "Playing Title","listen": "Player_Title"},
+               "Player_FinishTime": {"label": "Playing FinishTime","listen": "Player_FinishTime"},
+               "Player_OriginalTitle": {"label": "Playing OriginalTitle","listen": "Player_OriginalTitle"},
+               "Player_TVShowTitle": {"label": "Playing TVShow","listen": "Player_TVShowTitle"},
+               "Player_Time": {"label": "Playing Time","listen": "Player_Time"},
+               "Player_Duration": {"label": "Playing Duration","listen": "Player_Duration"}
+            },
+            "sliders": {
+               "ShowWatched":
+                  {"label":"Show Watched (n->Y)", "unit" : "N/Y", "listen" : "ShowWatched", 
+                  "evaldo":[{"test":"DYNAMIK $Result","then":"__ClearNotWatchedSwitch","or":"__SetNotWatchedSwitch"}]
+                  },
+               "ShutdownMenu":
+                  {"label":"Show shutdownmenu(N->Y)", "unit" : "N/Y", "listen" : "ShutdownMenu", 
+                  "evaldo":[{"test":"DYNAMIK $Result","then":"__SetShutdownMenu","or":"__SetShutdownImmed"}]
+                  }
+            }, 
+            "buttons":{
+               "__SetPause":
+               {"label":"",
+                  "type":"static",
+                  "command":"",
+                  "queryresult":"",
+                  "evalwrite":[
+                     {"variable":"MyStatus","value":"Paused"},
+                     {"variable":"PlayerID","value":1}
+                  ]  
+               }, 
+               "__SetPlaying":
+               {"label":"",
+                  "type":"static",
+                  "command":"",
+                  "queryresult":"",
+                  "evalwrite":[
+                     {"variable":"MyStatus","value":"Playing"},
+                     {"variable":"PlayerID","value":1}
+                     ]  
+               },
+               "__SetStopped":
+               {"label":"",
+                  "type":"static",
+                  "command":"",
+                  "queryresult":"",
+                  "evalwrite":[
+                     {"variable":"MyStatus","value":"Stopped"},
+                     {"variable":"PlayerID","value":0}
+                     ]  
+               },    
+               "__GetPlayerID":
+                  {"label":"",
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Player.GetActivePlayers\",\"id\":\"\"}}",
+                  "queryresult":"$.result[0]",
+                  "evalwrite":[
+                     {"variable":"MYRESULT","value":"DYNAMIK  (\"$Result\")"},
+                     {"variable":"PlayerID","value":"DYNAMIK (\"$Result\"==\"undefined\")?0:JSON.parse(\"$Result\").playerid"}
+                     ]  
+               },         
+               "__CheckMenu":
+                  {"label":"",
+                  "type":"static",
+                  "command":"",
+                  "evalwrite":[ 
+                     {"variable":"CacheResidency","value":"DYNAMIK let x = process.hrtime();x[0]-$CacheBuilt"}
+                  ],  
+                  "evaldo":[
+                     {"test":"DYNAMIK $CacheResidency<=10","then":"__CacheCheckMenu", "or":"__httpCheckMenu"}]
+               },
+               "__CacheCheckMenu":
+                  {"label":"",
+                  "type":"static",
+                   "command":"",
+                   "evaldo":[
+                     {"test":"DYNAMIK \"$Window_ID\"!=\"$Fullscreen_ID\"","then":"__Nav_Menu"},
+                     {"test":"DYNAMIK \"$Window_ID\"==\"$Fullscreen_ID\" && \"$ReturnMenu\" == \"__PAUSE\"","then":"__PAUSE"},
+                     {"test":"DYNAMIK \"$Window_ID\"==\"$Fullscreen_ID\" && \"$ReturnMenu\" == \"__Nav_Playing\"","then":"__Nav_Playing"}
+                  ]
+            },
+               "__httpCheckMenu":
+                  {"label":"",
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\",\"message\":{\"jsonrpc\":\"2.0\",\"id\":\"FillCache\",\"method\":\"GUI.GetProperties\",\"params\":{\"properties\":[\"currentwindow\",\"fullscreen\",\"currentcontrol\"]}}}",
+                  "queryresult":"$.result.currentwindow",
+                  "evalwrite":[
+                     {"variable":"Window_ID","value":"DYNAMIK  ((\"$Result\" == \"undefined\"))?0:JSON.parse(\"$Result\").id"},
+                     {"variable":"CacheBuilt","value":"DYNAMIK process.hrtime()[0];"}
+                        ],  
+                        "evaldo":[
+                           {"test":"DYNAMIK \"$Window_ID\"!=\"$Fullscreen_ID\"","then":"__Nav_Menu"},
+                           {"test":"DYNAMIK \"$Window_ID\"==\"$Fullscreen_ID\" && \"$ReturnMenu\" == \"__PAUSE\"","then":"__PAUSE"},
+                           {"test":"DYNAMIK \"$Window_ID\"==\"$Fullscreen_ID\" && \"$ReturnMenu\" == \"__Nav_Playing\"","then":"__Nav_Playing"}
+                        ]
+                     },
+               "__Nav_Menu":
+               {"label":"",
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\",\"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Input.$CURSOR\",\"id\":\"Input $CURSOR\"}}"
+               },               
+               "__Nav_Playing":
+               {"label":"",
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\",\"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Input.ExecuteAction\",\"params\":{\"action\":\"$PlayerSeek\"},\"id\":\"\"}}"
+               },     
+               "__Nav_Playing_Enter":     
+               {"label":"",                                 
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\",\"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Player.PlayPause\",\"id\":\"\",\"params\":{\"playerid\":1}}}"
+               },
+               "__INITIALISE": {"label": "", "type":"static", "command":"."
+               },
+               "Debug playerid":  
+               {"label":"",                                 
+                  "type":"static",
+                  "command":"",
+                  "evaldo":[{"test":true,"then":"__GetPlayerID", "or":""}
+                  ]   
+               },
+               "POWER ON":  
+               {"label":"",                                 
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Player.GetActivePlayers\",\"id\":\"\"}}",
+                  "queryresult":"$.result[0]",
+                  "evalwrite":[
+                     {"variable":"MYRESULT","value":"DYNAMIK  (\"$Result\")"},
+                     {"variable":"PlayerID","value":"DYNAMIK (\"$Result\"==\"undefined\")?0:JSON.parse(\"$Result\").playerid"},
+                     {"variable":"MyStatus","value":"DYNAMIK (\"$Result\"==\"undefined\")?\"Stopped\":JSON.parse(\"$Result\").playerid"},
+                     {"variable":"CacheBuilt","value":"0"}
+                  ],  
+                  "evaldo":[{"test":true,"then":"__INITIALISE", "or":""},
+                     {"test":true, "then":"__StartupMessage", "or":""},
+                     {"test":"$PlayerID == 1", "then":"__CheckPlaying", "or":""}
+      
+                  ]   
+               },
+               "__CheckPlaying":
+               {"label":"",      
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Player.GetProperties\",\"params\": {\"playerid\":1,\"properties\":[\"speed\"]},\"id\":\"\"}}",
+                  "queryresult":"$.result",
+                  "evalwrite":[
+                     {"variable":"MyStatus","value":"DYNAMIK JSON.parse(\"$Result\").speed == 0?\"Paused\":\"Playing\" "}
+                  ]
+               },
+               "__StartupMessage":  
+               {"label":"",                                 
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"id\":\"POWER-ON\",\"method\":\"GUI.ShowNotification\", \"params\":{\"title\": \"NEEO-Metadriver\",\"message\": \"NEEO-connection active\",\"displaytime\":5000}}}"  
+               },
+               "POWER OFF":  
+               {"label":"",    
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":$ShutdownCommand,\"id\":\"shutdown\"}}",
+                  "queryresult":"",
+                  "evaldo":[
+                     {"test":true,"then":"__PERSIST", "or":""},
+                     {"test":true,"then":"__CLEANUP", "or":""}
+                  ]
+               },
+               "__ShutDown":
+               {"label":"",
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"System.Shutdown\",\"id\":\"shutdown\"}}",
+                  "queryresult":"",
+                  "evaldo":[
+                     {"test":true,"then":"__PERSIST", "or":""}
+                  ]
+               },
+               "__MenuShutdown": 
+               {"label":"",
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\",\"message\":{\"jsonrpc\":\"2.0\",\"method\":\"GUI.ActivateWindow\",\"params\":{\"window\": \"shutdownmenu\"},\"id\":\"PowerOff\"}}",
+                  "evaldo":[
+                  {"test":true,"then":"__CLEANUP", "or":""},
+                  {"test":true,"then":"__PERSIST", "or":""}
+                  ]
+               },
+               "__SetNotWatchedSwitch":
+               {"label":"",
+                  "type":"static",
+                  "command":"",
+                  "evalwrite":[
+                     {"variable":"WatchFilter", "value":"\"filter\": {\"field\": \"playcount\", \"operator\": \"is\", \"value\": \"0\"},"}
+                  ]
+               },
+               "__ClearNotWatchedSwitch":
+               {"label":"",
+                  "type":"static",
+                  "command":"",
+                  "evalwrite":[
+                     {"variable":"WatchFilter", "value":""}
+                  ]
+               },
+               "__SetShutdownMenu":
+               {"label":"",
+                  "type":"static",
+                  "command":"",
+                  "evalwrite":[
+                     {"variable":"ShutdownImmed", "value":"false"},
+                     {"variable":"ShutdownCommand", "value":"$SetShutdownmenuCommand"}
+                  ]
+               },
+               "__SetShutdownImmed":
+               {"label":"",
+                  "type":"static",
+                  "command":"",
+                  "evalwrite":[
+                     {"variable":"ShutdownImmed", "value":"true"},
+                     {"variable":"ShutdownCommand", "value":"$SetShutdownCommand"}
+      
+                  ]
+               },
+               "STOP":
+               {"label":"",
+                  "type":"static",
+                  "command":"",
+                  "evaldo":[{"test":"$PlayerID","then":"__STOP", "or":""}]
+               },
+               "__STOP":
+               {"label":"",                                 
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"id\":\"POWER-ON\",\"method\":\"Player.Stop\", \"params\":{\"playerid\": 1}}}"  
+               },
+               "VOLUME UP":
+               {"label":"",
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Application.SetVolume\",\"id\":\"\",\"params\":{\"volume\":\"increment\"}}"
+               },
+               "VOLUME DOWN":
+               {"label":"",
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Application.SetVolume\",\"id\":\"\",\"params\":{\"volume\":\"decrement\"}}"
+               },
+               "CHANNEL UP":
+                  {"label":"",
+                     "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Input.Action\",\"id\":\"\",\"params\":{\"action\": \"pageup\"}}"
+               },
+               "CHANNEL DOWN":
+               {"label":"",
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Input.Action\",\"id\":\"\",\"params\":{\"action\": \"pagedown\"}}}"
+               },
+               "CURSOR LEFT":
+               {"label":"",
+                  "type":"static",
+                  "command":"",
+                  "evalwrite":[{"variable":"CheckWindow_ID","value":"$Fullscreen_ID"},
+                     {"variable":"CURSOR","value":"Left"},
+                     {"variable":"PlayerSeek","value":"stepback"},
+                     {"variable":"ReturnMenu","value":"__Nav_Playing"}
+                  ],  
+                  "evaldo":[{"test":"$PlayerID","then":"__CheckMenu", "or":"__Nav_Menu"}]   
+               },
+               "CURSOR DOWN":
+               {"label":"",
+                  "type":"static",
+                  "command":"",
+                  "evalwrite":[{"variable":"CheckWindow_ID","value":"$Fullscreen_ID"},
+                     {"variable":"CURSOR","value":"Down"},
+                     {"variable":"PlayerSeek","value":"skipnext"},
+                     {"variable":"ReturnMenu","value":"__Nav_Playing"}               
+                     ],  
+                  "evaldo":[{"test":"$PlayerID","then":"__CheckMenu", "or":"__Nav_Menu"}]   
+               },
+               "CURSOR UP":
+               {"label":"",
+                  "type":"static",
+                  "command":"",
+                  "evalwrite":[{"variable":"CheckWindow_ID","value":"$Fullscreen_ID"},
+                     {"variable":"CURSOR","value":"Up"},
+                     {"variable":"PlayerSeek","value":"skipprevious"},
+                     {"variable":"ReturnMenu","value":"__Nav_Playing"}            
+                  ],  
+                  "evaldo":[{"test":"$PlayerID","then":"__CheckMenu", "or":"__Nav_Menu"}]   
+               },
+               "CURSOR RIGHT":
+               {"label":"",
+                  "type":"static",
+                  "command":"",
+                  "evalwrite":[{"variable":"CheckWindow_ID","value":"$Fullscreen_ID"},
+                     {"variable":"CURSOR","value":"Right"},
+                     {"variable":"PlayerSeek","value":"stepforward"},
+                     {"variable":"ReturnMenu","value":"__Nav_Playing"}            
+                  ],  
+               "evaldo":[{"test":"$PlayerID","then":"__CheckMenu", "or":"__Nav_Menu"}]   
+               }, 
+               "CURSOR ENTER":
+               {"label":"",
+                  "type":"static",
+                  "command":"",
+                  "evalwrite":[{"variable":"CheckWindow_ID","value":"$Fullscreen_ID"},
+                     {"variable":"CURSOR","value":"Select"},
+                     {"variable":"PlayerSeek","value":"N/A"},
+                     {"variable":"ReturnMenu","value":"__PAUSE"}
+                  ],  
+               "evaldo":[{"test":"$PlayerID","then":"__CheckMenu", "or":"__Nav_Menu"}]   
+               },            
+               "__SELECT":
+               {"label":"",                                 
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":\"Input.Select\",\"id\":\"\"}"
+               },          
+               "PAGE UP":
+               {"label":"",
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":\"Input.ExecuteAction\",\"id\":\"\",\"params\":{\"action\": \"pageup\"}}"
+               },
+               "PAGE DOWN":
+               {"label":"",
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":\"Input.ExecuteAction\",\"id\":\"\",\"params\":{\"action\": \"pagedown\"}}"
+               },
+               "PLAY":
+               {"label":"",
+                  "type":"static",
+                  "command":"",
+                  "evalwrite":[
+                     {"variable":"MYRESULT","value":"$PlayerID"}
+                  ],  
+                  "evaldo":[{"test":"DYNAMIK (\"$PlayerID\"==\"1\")","then":"__PLAY", "or":"__SELECT"}]   
+               },
+               "__PLAY":
+               {"label":"",                                 
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Player.PlayPause\",\"id\":\"\",\"params\":{\"playerid\":1}}}"
+               },    
+               "SYNCSUB":
+               {"label":"",
+                  "type":"static",
+                  "command":"",
+               "evaldo":[{"test":"$PlayerID","then":"__SYNCSUB", "or":"__SELECT"}]      
+               },
+               "__SYNCSUB":
+              {"label":"",                                 
+               "type":"http-rest",
+               "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Input.ExecuteAction\",\"params\":{ \"action\": \"subtitledelay\"},\"id\":\"\"}}"
+               },          
+               "SUBTITLE":
+               {"label":"",                                 
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"GUI.ActivateWindow\",\"id\":\"\",\"params\":{\"window\": \"subtitlesearch\"}}}"
+               },          
+               "PAUSE":
+               {"label":"",
+               "type":"static",
+               "command":"",
+               "evaldo":[{"test":"$PlayerID","then":"__PAUSE", "or":"__SELECT"}]               
+               },
+               "__PAUSE":
+               {"label":"",                                 
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Player.PlayPause\",\"id\":\"\",\"params\":{\"playerid\":1}}}"           
+               },
+               "BACK":
+               {"label":"",
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Input.back\",\"id\":\"\"}}"
+               },
+               "MENU":
+               {"label":"",
+                  "type":"static",
+               "command":"",
+               "evalwrite":[{"variable":"MYRESULT","value":"$PlayerID"}],
+               "evaldo":[{"test":"DYNAMIK $PlayerID","then":"__OSD", "or":"__MENU"}]               
+               },
+               "__OSD":
+               {"label":"",                                 
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Input.ShowOSD\",\"id\":\"\"}}"           
+               },
+               "__MENU":
+               {"label":"",                                 
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Input.ContextMenu\",\"id\":\"\"}}"           
+               },
+               "SELECT":
+               {"label":"",
+                  "type":"static",
+                  "command":"",
+                  "evaldo":[{"test":true,"then":"__SELECT", "or":""}]  
+               },
+               "AUDIO":
+               {"label":"",
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Input.audionextlanguage\",\"id\":\"\"}}"
+               }, 
+               "LANGUAGE":
+               {"label":"",
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Input.audionextlanguage\",\"id\":\"\"}}"
+               },  
+               "MUTE TOGGLE":
+               {"label":"",
+                  "type":"http-rest",
+                  "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":\"Application.SetMute\",\"id\":\"\"}}"           
+               }
+            },
+            "directories":
+               {"Collection":
+                  {"label":"TVShows",
+                  "feeders":{
+                     "TVShows":{"label":"TVShow list",
+                        "commandset":[
+                        {
+                           "type":"http-get",			
+                           "command":"http://$MyKODIIp:$MyKODIPort/jsonrpc?request={\"jsonrpc\":\"2.0\",\"method\":\"VideoLibrary.GetTVShows\",\"id\":\"TV\",\"params\":{$WatchFilter\"properties\":[\"title\",\"thumbnail\",\"fanart\",\"playcount\"],\"sort\":{\"order\":\"ascending\",\"method\":\"title\",\"ignorearticle\": true }}}",
+                           "queryresult":"$.result.tvshows.*",
+                           "itembrowse":"DYNAMIK JSON.parse(\"$Result\").label",
+                           "itemname":"DYNAMIK JSON.parse(\"$Result\").label",                        
+                           "itemimage":"DYNAMIK (JSON.parse(\"$Result\").playcount != 0)?\"https://raw.githubusercontent.com/jac459/meta-kodi/master/Icons/checkmark.jpg\":(\"$ShowThumbnail\" == \"true\")?(JSON.parse(\"$Result\").fanart.includes(\"http\"))?decodeURIComponent(JSON.parse(\"$Result\").fanart.replace(\"image://\",\"\").slice(0, -1)):(JSON.parse(\"$Result\").fanart.includes(\"smb%3a\"))?JSON.parse(\"$Result\").fanart.replace(\"image://\",\"http://$MyKODIIp:$MyKODIPort/vfs/\").slice(0, -1):\"https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/movie.jpg\":\"https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/tvshow.jpg\"",
+                           "evalwrite":[{"variable":"TVShowTitle","value":"DYNAMIK JSON.parse(\"$Result\").title"},
+                              {"variable":"TVShowid","value":"DYNAMIK JSON.parse(\"$Result\").tvshowid"}, 
+                              {"variable":"TVShowBanner","value":"DYNAMIK (\"$ShowThumbnail\" == \"true\")?(JSON.parse(\"$Result\").fanart.includes(\"http\"))?decodeURIComponent(JSON.parse(\"$Result\").fanart.replace(\"image://\",\"\").slice(0, -1)):(JSON.parse(\"$Result\").fanart.includes(\"smb%3a\"))?JSON.parse(\"$Result\").fanart.replace(\"image://\",\"http://$MyKODIIp:$MyKODIPort/vfs/\").slice(0, -1):\"https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/movie.jpg\":\"https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/tvshow.jpg\""}
+                           ],
+                           "evalnext":[
+                              {
+                                 "test":true,
+                                 "then":"TVSeasons",
+                                 "or":""
+                              } 
+                           ]}  
+                        ]
+                     },
+                     "TVSeasons":{
+                        "label":"TVShow seasons",
+                        "commandset":[
+                        {
+                           "type":"static",
+                           "command":"{}",
+                           "itemtype":"tile",
+                           "itemaction":"",
+                           "itemimage":"$TVShowBanner"
+                        },
+                        {
+                           "type":"http-get",
+                           "command":"http://$MyKODIIp:$MyKODIPort/jsonrpc?request={\"jsonrpc\":\"2.0\",\"method\":\"VideoLibrary.GetSeasons\",\"id\":\"TV\",\"params\":{\"tvshowid\":$TVShowid,\"properties\": [\"thumbnail\",\"playcount\",\"tvshowid\", \"season\", \"showtitle\"],\"sort\":{\"order\":\"ascending\",\"method\":\"label\",\"ignorearticle\": true }}}",
+                           "queryresult":"$.result.seasons.*",
+                           "itemimage":"DYNAMIK (JSON.parse(\"$Result\").playcount != 0)?\"https://raw.githubusercontent.com/jac459/meta-kodi/master/Icons/checkmark.jpg\":\"$TVShowBanner\"",
+                           "itembrowse":"DYNAMIK JSON.parse(\"$Result\").label","itemname":"DYNAMIK JSON.parse(\"$Result\").label","itemlabel":"DYNAMIK JSON.parse(\"$Result\").label",
+                           "evalwrite":[
+                                        {"variable":"SeasonName","value":"DYNAMIK JSON.parse(\"$Result\").label"},{"variable":"Seasonid","value":"DYNAMIK JSON.parse(\"$Result\").season"}],
+                           "evalnext":[{"test":true,"then":"TVShowEpisodes","or":""}]
+                        }
+                        ]
+                     },
+                     "TVShowEpisodes":{
+                        "label":"TVShow episodes",
+                        "commandset":[
+                           {"type":"http-get",
+                           "command":"http://$MyKODIIp:$MyKODIPort/jsonrpc?request={\"jsonrpc\":\"2.0\",\"method\":\"VideoLibrary.GetEpisodes\",\"id\":\"TV\",\"params\":{\"tvshowid\":$TVShowid,\"filter\": { \"operator\": \"is\", \"field\":  \"season\", \"value\": \"$Seasonid\"} ,\"properties\":[\"title\",\"thumbnail\",\"playcount\"],\"sort\":{\"order\":\"ascending\",\"method\":\"label\",\"ignorearticle\": true }}}",
+                           "queryresult":"$.result.episodes.*",
+                           "itembrowse":"DYNAMIK JSON.parse(\"$Result\").label","itemname":"DYNAMIK JSON.parse(\"$Result\").label","itemlabel":"DYNAMIK JSON.parse(\"$Result\").label",
+                           "itemimage":"DYNAMIK (JSON.parse(\"$Result\").playcount != 0)?\"https://raw.githubusercontent.com/jac459/meta-kodi/master/Icons/checkmark.jpg\":(\"$ShowThumbnail\" == \"true\")?(JSON.parse(\"$Result\").thumbnail.includes(\"http\"))?decodeURIComponent(JSON.parse(\"$Result\").thumbnail.replace(\"image://\",\"\").slice(0, -1)):(JSON.parse(\"$Result\").thumbnail.includes(\"smb%3a\"))?JSON.parse(\"$Result\").thumbnail.replace(\"image://\",\"http://$MyKODIIp:$MyKODIPort/vfs/\").slice(0, -1):\"https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/movie.jpg\":\"https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/tvshow.jpg\"",
+                           "evalwrite":[{"variable":"EpisodeName","value":"DYNAMIK JSON.parse(\"$Result\").label"},
+                                       {"variable":"Episodeid","value":"DYNAMIK JSON.parse(\"$Result\").episodeid"},
+                                       {"variable":"Episodeimage","value":"DYNAMIK (JSON.parse(\"$Result\").thumbnail.includes(\"http\"))?decodeURIComponent(JSON.parse(\"$Result\").thumbnail.replace(\"image://\",\"\").slice(0, -1)):(JSON.parse(\"$Result\").thumbnail.includes(\"smb%3a\"))?JSON.parse(\"$Result\").thumbnail.replace(\"image://\",\"http://$MyKODIIp:$MyKODIPort/vfs/\").slice(0, -1):\"https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/movie.jpg\""}                              
+                                       ],
+                           "evalnext":[{"test":true,"then":"TVShowEpisode","or":""}]
+                           }
+                        ]
+                     },
+                     "TVShowEpisode":{   
+                        "label":"A single episode",
+                        "commandset":[
+                        {"type":"static",
+                        "command":"{}",
+                        "itemtype":"tile",
+                        "itemaction":"",
+                        "itemimage":"$Episodeimage"
+                        },
+                        {
+                        "type":"static",
+                        "command":"{}",
+                        "itemtext":"This is a test, but it is not working",
+                        "itemtype":"header",
+                        "itemaction":""                  
+                        },            
+                        {
+                        "type":"static",
+                        "command":"{}",
+                        "itemtext":"Stop",
+                        "itemtype":"controlbutton",
+                        "itemaction":""
+                        },
+                        {"command":"{}","type":"static",
+                        "itemname":"$TVShowTitle",
+                        "itemlabel":"$EpisodeName",
+                        "itembrowse":"12",
+                        "itemimage":"https://raw.githubusercontent.com/jac459/metadriver/master/pictures/play.jpg",
+                        "itemaction":"Play"                  
+                        }
+                        ]               
+                     },
+                     "Play":{   
+                        "label":"Play episode",
+                        "commandset":[
+                        {
+                           "type":"http-rest",
+                           "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Player.Open\",\"id\":\"TVP\",\"params\":{\"item\":  {\"episodeid\":$Episodeid}}}}"
+                        }
+                        ]
+                     },
+                     "Pause":{   
+                        "label":"Pause play",
+                        "commandset":[
+                     {
+                        "type":"http-rest",
+                        "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Player.PlayPause\",\"id\":\"\",\"params\":{\"playerid\":1}}}"           
+                           }
+                        ]
+                     },
+                     "Stop":{   
+                        "label":"Stop play",
+                        "commandset":[
+                        {
+                        "type":"http-rest",
+                        "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"id\":\"POWER-ON\",\"method\":\"Player.Stop\", \"params\":{\"playerid\": 1}}}"  
+                                 }
+                        ]
+                     }
+                  }
+               },
+               "EpisodesRecentAdded":  
+                  {"label":"EpisodesRecentAdded",
+                  "feeders":{
+                     "RecentEpisodes":{
+                        "label":"RecentEpisode list",
+                        "commandset":[
+                        {
+                        "type":"static",
+                        "command":"",
+                        "itemtype":"tile",
+                        "itemaction":""
+                        },
+                        {
+                        "type":"http-get",			
+                        "command":"http://$MyKODIIp:$MyKODIPort/jsonrpc?request={\"jsonrpc\":\"2.0\",\"method\":\"VideoLibrary.GetRecentlyAddedEpisodes\",\"id\":\"RecentEpisode\",\"params\":{\"properties\":[\"title\",\"playcount\",\"thumbnail\",\"showtitle\"]}}",
+                        "queryresult":"$.result.episodes.*",
+                        "itembrowse":"DYNAMIK JSON.parse(\"$Result\").label",
+                        "itemname":"DYNAMIK JSON.parse(\"$Result\").showtitle",
+                        "itemlabel":"DYNAMIK JSON.parse(\"$Result\").label",
+                        "itemimage":"DYNAMIK (JSON.parse(\"$Result\").playcount != 0)?\"https://raw.githubusercontent.com/jac459/meta-kodi/master/Icons/checkmark.jpg\":(\"$ShowThumbnail\" == \"true\")?(JSON.parse(\"$Result\").thumbnail.includes(\"http\"))?decodeURIComponent(JSON.parse(\"$Result\").thumbnail.replace(\"image://\",\"\").slice(0, -1)):(JSON.parse(\"$Result\").thumbnail.includes(\"smb%3a\"))?JSON.parse(\"$Result\").thumbnail.replace(\"image://\",\"http://$MyKODIIp:$MyKODIPort/vfs/\").slice(0, -1):\"https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/tvshow.jpg\":\"https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/movie.jpg\"",
+                        "evalwrite":[
+                                    {"variable":"EpisodeName","value":"DYNAMIK JSON.parse(\"$Result\").label"},
+                                    {"variable":"Episodeid","value":"DYNAMIK JSON.parse(\"$Result\").episodeid"}, 
+                                    {"variable":"Episodeimage","value":"DYNAMIK (JSON.parse(\"$Result\").thumbnail.includes(\"http\"))?decodeURIComponent(JSON.parse(\"$Result\").thumbnail.replace(\"image://\",\"\").slice(0, -1)):(JSON.parse(\"$Result\").thumbnail.includes(\"smb%3a\"))?JSON.parse(\"$Result\").thumbnail.replace(\"image://\",\"http://$MyKODIIp:$MyKODIPort/vfs/\").slice(0, -1):\"https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/movie.jpg\""} 
+                                    ],
+                        "evalnext":[{"test":true, "then":"RecentEpisodePlay","or":""}]
+                        }  
+                        ]
+                     }, 
+                     "RecentEpisodePlay":{   
+                        "label":"A single episode",
+                        "commandset":[
+                           {"type":"static",
+                           "command":"{}",
+                           "itemtype":"tile",
+                           "itemaction":"",
+                           "itemimage":"$Episodeimage"
+                           },
+                           {
+                           "type":"static",
+                           "command":"{}",
+                           "itemtext":"This is a test, but it is not working",
+                           "itemtype":"header",
+                           "itemaction":""                  
+                           },            
+                           {
+                           "type":"static",
+                           "command":"{}",
+                           "itemtext":"Stop",
+                           "itemtype":"controlbutton",
+                           "itemaction":""
+                           },
+                           {"command":"{}","type":"static",
+                           "itemname":"$EpisodeName",
+                           "itemlabel":"$EpisodeName",
+                           "itembrowse":"12",
+                           "itemimage":"$Episodeimage",
+                           "itemaction":"Play"                  
+                           }
+                           ]               
+                        },
+                     "Play":{   
+                        "label":"Play Episode",
+                        "commandset":[
+                           {
+                           "type":"http-rest",
+                           "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Player.Open\",\"id\":\"TVP\",\"params\":{\"item\":  {\"episodeid\":$Episodeid}}}}"
+                           }
+                        ]
+                     },
+                     "Pause":{   
+                        "label":"Pause play",
+                        "commandset":[
+                           {
+                           "type":"http-rest",
+                           "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Player.PlayPause\",\"id\":\"\",\"params\":{\"playerid\":1}}}"           
+                              }
+                           ]
+                        },
+                        "Stop":{   
+                           "label":"Stop play",
+                           "commandset":[
+                           {
+                           "type":"http-rest",
+                           "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"id\":\"POWER-ON\",\"method\":\"Player.Stop\", \"params\":{\"playerid\": 1}}}"  
+                                    }
+                           ]
+                        }
+                     }
+                  },        
+               "Movies":  
+                  {"label":"Movies",
+                  "feeders":{
+                     "Movies":{
+                     "label":"Movie list",
+                     "commandset":[
+                        {
+                        "type":"http-get",			
+                        "command":"http://$MyKODIIp:$MyKODIPort/jsonrpc?request={\"jsonrpc\":\"2.0\",\"method\":\"VideoLibrary.GetMovies\",\"id\":\"movie\",\"params\":{\"properties\":[\"title\",\"playcount\",\"fanart\"],\"sort\":{\"order\":\"ascending\",\"method\":\"title\",\"ignorearticle\": true }}}",
+                        "queryresult":"$.result.movies.*",
+                        "itembrowse":"DYNAMIK JSON.parse(\"$Result\").label",
+                        "itemname":"DYNAMIK JSON.parse(\"$Result\").label",
+                        "itemlabel":"DYNAMIK JSON.parse(\"$Result\").label",
+                        "itemaction":"", 
+                        "itemimage":"DYNAMIK (JSON.parse(\"$Result\").playcount != 0)?\"https://raw.githubusercontent.com/jac459/meta-kodi/master/Icons/checkmark.jpg\":(\"$ShowThumbnail\" == \"true\")?(JSON.parse(\"$Result\").fanart.includes(\"http\"))?decodeURIComponent(JSON.parse(\"$Result\").fanart.replace(\"image://\",\"\").slice(0, -1)):(JSON.parse(\"$Result\").fanart.includes(\"smb%3a\"))?JSON.parse(\"$Result\").fanart.replace(\"image://\",\"http://$MyKODIIp:$MyKODIPort/vfs/\").slice(0, -1):\"https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/movie.jpg\":\"https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/tvshow.jpg\"",
+                        "evalwrite":[{"variable":"MovieTitle","value":"DYNAMIK JSON.parse(\"$Result\").title"},
+                                     {"variable":"Movieid","value":"DYNAMIK JSON.parse(\"$Result\").movieid"}, 
+                                     {"variable":"MovieBanner","value": "DYNAMIK (JSON.parse(\"$Result\").fanart.includes(\"http\"))?decodeURIComponent(JSON.parse(\"$Result\").fanart.replace(\"image://\",\"\").slice(0, -1)):(JSON.parse(\"$Result\").fanart.includes(\"smb%3a\"))?JSON.parse(\"$Result\").fanart.replace(\"image://\",\"http://$MyKODIIp:$MyKODIPort/vfs/\").slice(0, -1):\"https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/movie.jpg\""}
+                                    ],
+                        "evalnext":[{"test":true, "then":"MoviePlay","or":""}
+                        ]
+                        }  
+                     ]
+                     },
+                     
+                     "MoviePlay":{   
+                        "label":"A single movie",
+                        "commandset":[
+                           {
+                           "type":"static",
+                           "command":"{}",
+                           "itemtype":"tile",
+                           "itemaction":"",
+                           "itemimage":"$MovieBanner"
+                           },
+                           {
+                           "type":"static",
+                           "command":"{}",
+                           "queryresult":"$",
+                           "itemtext":"This is a testm, not working",
+                           "itemtype":"header",
+                           "itemaction":""                  
+                           },            
+                           {
+                           "type":"static",
+                           "command":"{}",
+                           "queryresult":"$",
+                           "itemtext":"Stop",
+                           "itemtype":"controlbutton",
+                           "itemaction":""
+                           },
+                           {
+                           "type":"static",
+                           "command":"{}",
+                           "queryresult":"",
+                           "itemname":"$MovieTitle",
+                           "itemlabel":"MovieTitle",
+                           "itembrowse":"12",
+                           "itemimage":"$MovieBanner",
+                           "itemaction":"Play"                  
+                           }
+                        ]
+                     },   
+                     "Pause":{   
+                        "label":"Pause play",
+                        "commandset":[
+                           {
+                           "type":"http-rest",
+                           "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Player.PlayPause\",\"id\":\"\",\"params\":{\"playerid\":1}}}"           
+                              }
+                           ]
+                     },
+                     "Stop":{   
+                        "label":"Stop play",
+                        "commandset":[
+                           {
+                           "type":"http-rest",
+                           "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"id\":\"POWER-ON\",\"method\":\"Player.Stop\", \"params\":{\"playerid\": 1}}}"  
+                           }
+                        ]
+                     },               
+                     "Play":{   
+                        "label":"Play a movie",
+                        "commandset":[
+                           {
+                           "type":"http-rest",
+                           "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Player.Open\",\"id\":\"MOVIEP\",\"params\":{\"item\":  {\"movieid\":$Movieid}}}}"
+                           } 
+                        ]
+                        }
+                     }
+                  },
+               "MoviesRecentAdded":  
+                  {"label":"MoviesRecentAdded",
+                  "feeders":{
+                     "Movies":{
+                        "label":"RecentMovie list",
+                        "commandset":[
+                        {
+                           "type":"http-get",			
+                           "command":"http://$MyKODIIp:$MyKODIPort/jsonrpc?request={\"jsonrpc\":\"2.0\",\"method\":\"VideoLibrary.GetRecentlyAddedMovies\",\"id\":\"movie\",\"params\":{\"properties\":[\"title\",\"playcount\",\"thumbnail\"],\"sort\":{\"order\":\"ascending\",\"method\":\"title\",\"ignorearticle\": true }}}",
+                           "queryresult":"$.result.movies.*",
+                           "itembrowse":"DYNAMIK JSON.parse(\"$Result\").label",
+                           "itemname":"DYNAMIK JSON.parse(\"$Result\").label",
+                           "itemlabel":"DYNAMIK JSON.parse(\"$Result\").label",
+                           "itemimage":"DYNAMIK (JSON.parse(\"$Result\").playcount != 0)?\"https://raw.githubusercontent.com/jac459/meta-kodi/master/Icons/checkmark.jpg\":(\"$ShowThumbnail\" == \"true\")?(JSON.parse(\"$Result\").thumbnail.includes(\"http\"))?decodeURIComponent(JSON.parse(\"$Result\").thumbnail.replace(\"image://\",\"\").slice(0, -1)):(JSON.parse(\"$Result\").thumbnail.includes(\"smb%3a\"))?JSON.parse(\"$Result\").thumbnail.replace(\"image://\",\"http://$MyKODIIp:$MyKODIPort/vfs/\").slice(0, -1):\"https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/movie.jpg\":\"https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/movie.jpg\"",
+                           "evalwrite":[{"variable":"MovieTitle","value":"DYNAMIK JSON.parse(\"$Result\").title"},
+                                        {"variable":"Movieid","value":"DYNAMIK JSON.parse(\"$Result\").movieid"}, 
+                                        {"variable":"MovieBanner","value": "DYNAMIK (JSON.parse(\"$Result\").thumbnail.includes(\"image://video@\"))?\"https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/movie.jpg\":(JSON.parse(\"$Result\").thumbnail.includes(\"http\"))?decodeURIComponent(JSON.parse(\"$Result\").thumbnail.replace(\"image://\",\"\").slice(0, -1)):\"\""}
+                                       ],
+                           "evalnext":[{"test":true, "then":"MoviePlay","or":""}]               
+                        }  
+                        ]
+                     },
+                     "MoviePlay":{   
+                        "label":"A single movie",
+                        "commandset":[
+                           {
+                           "type":"static",
+                           "command":"{}",
+                           "itemtype":"tile",
+                           "itemaction":"",
+                           "itemimage":"$MovieBanner"
+                           },
+                           {
+                           "type":"static",
+                           "command":"{}",
+                           "queryresult":"$",
+                           "itemtext":"This is a testm, not working",
+                           "itemtype":"header",
+                           "itemaction":""                  
+                           },            
+                           {
+                           "type":"static",
+                           "command":"{}",
+                           "queryresult":"$",
+                           "itemtext":"Stop",
+                           "itemtype":"controlbutton",
+                           "itemaction":""
+                           },
+                           {
+                           "type":"static",
+                           "command":"{}",
+                           "queryresult":"",
+                           "itemname":"$MovieTitle",
+                           "itemlabel":"MovieTitle",
+                           "itembrowse":"12",
+                           "itemimage":"$MovieBanner",
+                           "itemaction":"Play"                  
+                           }
+                        ]
+                     },  
+                     "Pause":{   
+                        "label":"Pause play",
+                        "commandset":[
+                           {
+                           "type":"http-rest",
+                           "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Player.PlayPause\",\"id\":\"\",\"params\":{\"playerid\":1}}}"           
+                              }
+                           ]
+                     },
+                     "Stop":{   
+                        "label":"Stop play",
+                        "commandset":[
+                           {
+                           "type":"http-rest",
+                           "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"id\":\"POWER-ON\",\"method\":\"Player.Stop\", \"params\":{\"playerid\": 1}}}"  
+                           }
+                        ]
+                     },               
+                     "Play":{   
+                        "label":"Play movie",
+                        "commandset":[
+                        {"type":"http-rest","command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Player.Open\",\"id\":\"MOVIEP\",\"params\":{\"item\":  {\"movieid\":$Movieid}}}}"} 
+                        ]
+                     }
+                  }
+               },         
+               "MovieSets":  
+                  {"label":"MovieSets",
+                  "feeders":{
+                     "MovieSets":{
+                        "label":"Movie Sets",
+                        "commandset":
+                        [
+                           {"type":"http-get",			
+                           "command":"http://$MyKODIIp:$MyKODIPort/jsonrpc?request={\"jsonrpc\":\"2.0\",\"method\":\"VideoLibrary.GetMovieSets\",\"id\":\"movie\",\"params\":{\"properties\":[\"title\",\"playcount\",\"thumbnail\"],\"sort\":{\"order\":\"ascending\",\"method\":\"title\",\"ignorearticle\": true}}}",
+                           "queryresult":"$.result.sets.*",
+                           "itembrowse":"DYNAMIK JSON.parse(\"$Result\").label","itemname":"DYNAMIK JSON.parse(\"$Result\").label",
+                           "itemlabel":"DYNAMIK JSON.parse(\"$Result\").label",
+                           "itemimage":"DYNAMIK (\"$ShowThumbnail\" == \"true\")?(JSON.parse(\"$Result\").thumbnail.includes(\"http\"))?decodeURIComponent(JSON.parse(\"$Result\").thumbnail.replace(\"image://\",\"\").slice(0, -1)):(JSON.parse(\"$Result\").thumbnail.includes(\"smb%3a\"))?JSON.parse(\"$Result\").thumbnail.replace(\"image://\",\"http://$MyKODIIp:$MyKODIPort/vfs/\").slice(0, -1):\"https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/movie.jpg\":\"https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/movie.jpg\"",
+                           "evalwrite":[{"variable":"SetTitle","value":"DYNAMIK JSON.parse(\"$Result\").title"},
+                                        {"variable":"Setid","value":"DYNAMIK JSON.parse(\"$Result\").setid"},
+                                        {"variable":"MovieBanner","value":"DYNAMIK (JSON.parse(\"$Result\").thumbnail.includes(\"http\"))?decodeURIComponent(JSON.parse(\"$Result\").thumbnail.replace(\"image://\",\"\").slice(0, -1)):(JSON.parse(\"$Result\").thumbnail.includes(\"smb%3a\"))?JSON.parse(\"$Result\").thumbnail.replace(\"image://\",\"http://$MyKODIIp:$MyKODIPort/vfs/\").slice(0, -1):\"https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/movie.jpg\""}],
+                           "evalnext":[
+                              {
+                                 "test":true,
+                                 "then":"MovieSet",
+                                 "or":""
+                              } 
+                           ]}  
+                        ]
+                     },
+                     "MovieSet":{
+                        "label":"Movieset entry",
+                        "commandset":[
+                        {"type":"http-get",
+                           "command":"http://$MyKODIIp:$MyKODIPort/jsonrpc?request={\"jsonrpc\":\"2.0\",\"method\":\"VideoLibrary.GetMovieSetDetails\",\"id\":\"MVS\",\"params\":{\"setid\":$Setid,\"properties\": [\"thumbnail\",\"playcount\"]}}",
+                           "queryresult":"$.result.setdetails.movies.*",
+                           "itembrowse":"DYNAMIK JSON.parse(\"$Result\").label","itemname":"DYNAMIK JSON.parse(\"$Result\").label","itemlabel":"DYNAMIK JSON.parse(\"$Result\").label",
+                           "itemimage":"$MovieBanner",
+                           "evalwrite":[{"variable":"MovieTitle","value":"DYNAMIK JSON.parse(\"$Result\").label"},{"variable":"Movieid","value":"DYNAMIK JSON.parse(\"$Result\").movieid"}],
+                           "evalnext":[{"test":true, "then":"MoviePlay","or":""}]
+                        }
+                        ]
+                     },
+                     "MoviePlay":{   
+                        "label":"A single movie",
+                        "commandset":[
+                           {
+                           "type":"static",
+                           "command":"{}",
+                           "itemtype":"tile",
+                           "itemaction":"",
+                           "itemimage":"$MovieBanner"
+                           },
+                           {
+                           "type":"static",
+                           "command":"{}",
+                           "queryresult":"$",
+                           "itemtext":"This is a testm, not working",
+                           "itemtype":"header",
+                           "itemaction":""                  
+                           },            
+                           {
+                           "type":"static",
+                           "command":"{}",
+                           "queryresult":"$",
+                           "itemtext":"Stop",
+                           "itemtype":"controlbutton",
+                           "itemaction":""
+                           },
+                           {
+                           "type":"static",
+                           "command":"{}",
+                           "queryresult":"",
+                           "itemname":"$MovieTitle",
+                           "itemlabel":"MovieTitle",
+                           "itembrowse":"12",
+                           "itemimage":"$MovieBanner",
+                           "itemaction":"Play"                  
+                           }
+                        ]
+                     },   
+                     "Pause":{   
+                        "label":"Pause play",
+                        "commandset":[
+                           {
+                           "type":"http-rest",
+                           "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Player.PlayPause\",\"id\":\"\",\"params\":{\"playerid\":1}}}"           
+                              }
+                           ]
+                     },
+                     "Stop":{   
+                        "label":"Stop play",
+                        "commandset":[
+                           {
+                           "type":"http-rest",
+                           "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"id\":\"POWER-ON\",\"method\":\"Player.Stop\", \"params\":{\"playerid\": 1}}}"  
+                           }
+                        ]
+                     },          
+                     "Play":{   
+                        "label":"Play Movie",
+                        "commandset":[
+                        {
+                           "type":"http-rest",
+                           "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Player.Open\",\"id\":\"TVP\",\"params\":{\"item\":  {\"movieid\":$Movieid}}}}"
+                        } 
+                        ]
+                     }               
+                  }
+               },
+               "VideoSources":  
+                  {"label":"VideoSources",
+                  "feeders":{
+                     "VideoSources":{
+                        "label":"VideoSources",
+                        "commandset":[
+                                 {
+                                    "type":"static",
+                                    "command":"",
+                                    "itemtype":"tile",
+                                    "itemimage":"https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/movie.jpg",                        
+                                    "itemaction":""
+                                 },
+                                 {
+                                    "type":"http-get",			
+                                    "command":"http://$MyKODIIp:$MyKODIPort/jsonrpc?request={\"jsonrpc\":\"2.0\",\"method\":\"Files.GetSources\",\"id\":\"VS\",\"params\": {\"media\": \"video\",\"sort\":{\"order\":\"ascending\",\"method\":\"title\",\"ignorearticle\": true}}}",
+                                    "queryresult":"$.result.sources.*",
+                                    "itembrowse":"DYNAMIK JSON.parse(\"$Result\").file",
+                                    "itemname":"DYNAMIK JSON.parse(\"$Result\").file",
+                                    "itemlabel":"DYNAMIK JSON.parse(\"$Result\").label",
+                                    "itemimage":"https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/movie.jpg",
+                                    "evalwrite":[{"variable":"Source","value":"DYNAMIK JSON.parse(\"$Result\").label"},
+                                                {"variable":"VideoFile","value":"DYNAMIK JSON.parse(\"$Result\").file"},                                 
+                                                {"variable":"VideoRootFile","value":"DYNAMIK JSON.parse(\"$Result\").file"},
+                                                {"variable":"VideoBanner","value":"https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/movie.jpg"}
+                                             ],
+                                    "evalnext":[
+                                       {
+                                          "test":true,
+                                          "then":"VideoDirectory",
+                                          "or":""
+                                       } 
+                                    ]}  
+                        ]
+                        }, 
+                     "VideoDirectory":{
+                        "label":"VideoDirectory files",
+                        "commandset":[
+                                 {
+                                    "type":"static",
+                                    "command":"",
+                                    "itemtype":"tile",
+                                    "itemaction":""
+                                 },
+                                 {
+                                    "type":"http-get",
+                                    "command":"http://$MyKODIIp:$MyKODIPort/jsonrpc?request={\"jsonrpc\":\"2.0\",\"method\":\"Files.GetDirectory\",\"id\":\"VS2\",\"params\":{\"directory\":\"$VideoFile\",\"sort\":{\"order\":\"ascending\",\"method\":\"label\",\"ignorearticle\": true}}}",
+                                    "queryresult":"$.result.files.*",
+                                    "itembrowse":"DYNAMIK JSON.parse(\"$Result\").file",
+                                    "itemlabel":"DYNAMIK (JSON.parse(\"$Result\").label.length > 28)?JSON.parse(\"$Result\").label.slice(28,99):\"\"",
+                                    "itemname":"DYNAMIK JSON.parse(\"$Result\").label.slice(0,28)",
+                                    "itemimage":"DYNAMIK (JSON.parse(\"$Result\").playcount != 0)?\"https://raw.githubusercontent.com/jac459/meta-kodi/master/Icons/checkmark.jpg\":(JSON.parse(\"$Result\").filetype == \"directory\")?\"https://raw.githubusercontent.com/jac459/meta-kodi/master/Icons/Folder.jpg\":\"https://raw.githubusercontent.com/jac459/meta-kodi/master/Icons/File.jpg\"",
+      
+                                    "evalwrite":[{"variable":"VideoFile","value":"DYNAMIK JSON.parse(\"$Result\").file"},
+                                                {"variable":"VideoDirectory2","value":"DYNAMIK JSON.parse(\"$Result\").file"},                               
+                                                {"variable":"VideoFileType","value":"DYNAMIK JSON.parse(\"$Result\").filetype"},
+                                                {"variable":"VideoFileType","value":"DYNAMIK JSON.parse(\"$Result\").filetype"}
+                                             ],
+                                    "evalnext":[
+                                       {
+                                          "test":"DYNAMIK (JSON.parse(\"$Result\").filetype == \"directory\")",      
+                                          "then":"VideoDirectory2"
+                                       },
+                                       {
+                                          "test":"DYNAMIK (JSON.parse(\"$Result\").filetype == \"file\")",      
+                                          "then":"VideoFilesPlay"
+                                       }                                 
+                                    ]}
+                        ]
+                        },      
+                     "VideoDirectory2":{
+                        "label":"VideoDirectory files",
+                        "commandset":[
+                                       {
+                                          "type":"static",
+                                          "command":"",
+                                          "itemtype":"tile",
+                                          "itemaction":""
+                                       },
+                                       {
+                                          "type":"http-get",
+                                          "command":"http://$MyKODIIp:$MyKODIPort/jsonrpc?request={\"jsonrpc\":\"2.0\",\"method\":\"Files.GetDirectory\",\"id\":\"VS2\",\"params\":{\"directory\":\"$VideoDirectory2\",\"sort\":{\"order\":\"ascending\",\"method\":\"label\",\"ignorearticle\": true}}}",
+                                          "queryresult":"$.result.files.*",
+                                          "itembrowse":"DYNAMIK JSON.parse(\"$Result\").file",
+                                          "itemlabel":"DYNAMIK (JSON.parse(\"$Result\").label.length > 28)?JSON.parse(\"$Result\").label.slice(28,99):\"\"",
+                                          "itemname":"DYNAMIK JSON.parse(\"$Result\").label.slice(0,28)",
+                                          "itemimage":"DYNAMIK (JSON.parse(\"$Result\").playcount != 0)?\"https://raw.githubusercontent.com/jac459/meta-kodi/master/Icons/checkmark.jpg\":(JSON.parse(\"$Result\").filetype == \"directory\")?\"https://raw.githubusercontent.com/jac459/meta-kodi/master/Icons/Folder.jpg\":\"https://raw.githubusercontent.com/jac459/meta-kodi/master/Icons/File.jpg\"",
+                                          "evalwrite":[{"variable":"VideoFile","value":"DYNAMIK JSON.parse(\"$Result\").file"},    
+                                                      {"variable":"VideoDirectory3","value":"DYNAMIK JSON.parse(\"$Result\").file"},                                                                            
+                                                      {"variable":"VideoFileType","value":"DYNAMIK JSON.parse(\"$Result\").filetype"}],
+                                          "evalnext":[
+                                             {
+                                                "test":"DYNAMIK (JSON.parse(\"$Result\").filetype == \"directory\")",      
+                                                "then":"VideoDirectory3"
+                                             },
+                                             {
+                                                "test":"DYNAMIK (JSON.parse(\"$Result\").filetype == \"file\")",      
+                                                "then":"VideoFilesPlay"
+                                             }  
+                                          ]}
+                        ]
+                        }, 
+                     "VideoDirectory3":{
+                        "label":"VideoDirectory files",
+                        "commandset":[
+                                 {
+                                    "type":"static",
+                                    "command":"",
+                                    "itemtype":"tile",
+                                    "itemaction":""
+                                 },
+                                 {
+                                    "type":"http-get",
+                                    "command":"http://$MyKODIIp:$MyKODIPort/jsonrpc?request={\"jsonrpc\":\"2.0\",\"method\":\"Files.GetDirectory\",\"id\":\"VS3\",\"params\":{\"directory\":\"$VideoDirectory3\",\"sort\":{\"order\":\"ascending\",\"method\":\"label\",\"ignorearticle\": true}}}",
+                                    "queryresult":"$.result.files.*",
+                                    "itembrowse":"DYNAMIK JSON.parse(\"$Result\").file",
+                                    "itemlabel":"DYNAMIK (JSON.parse(\"$Result\").label.length > 28)?JSON.parse(\"$Result\").label.slice(28,99):\"\"",
+                                    "itemname":"DYNAMIK JSON.parse(\"$Result\").label.slice(0,28)",
+                                    "itemimage":"DYNAMIK (JSON.parse(\"$Result\").playcount != 0)?\"https://raw.githubusercontent.com/jac459/meta-kodi/master/Icons/checkmark.jpg\":(JSON.parse(\"$Result\").filetype == \"directory\")?\"https://raw.githubusercontent.com/jac459/meta-kodi/master/Icons/Folder.jpg\":\"https://raw.githubusercontent.com/jac459/meta-kodi/master/Icons/File.jpg\"",
+                                    "evalwrite":[{"variable":"VideoFile","value":"DYNAMIK JSON.parse(\"$Result\").file"},   
+                                                {"variable":"VideoDirectory4","value":"DYNAMIK JSON.parse(\"$Result\").file"},                                                                            
+                                                {"variable":"VideoFileType","value":"DYNAMIK JSON.parse(\"$Result\").filetype"}],
+                                    "evalnext":[
+                                       {
+                                          "test":"DYNAMIK (JSON.parse(\"$Result\").filetype == \"directory\")",      
+                                          "then":"VideoDirectory4"
+                                       },
+                                       {
+                                          "test":"DYNAMIK (JSON.parse(\"$Result\").filetype == \"file\")",      
+                                          "then":"VideoFilesPlay"
+                                       }  
+                                    ]}
+                        ]
+                        },
+                     "VideoDirectory4":{
+                        "label":"VideoDirectory files",
+                        "commandset":[
+                           {
+                           "type":"http-get",
+                           "command":"http://$MyKODIIp:$MyKODIPort/jsonrpc?request={\"jsonrpc\":\"2.0\",\"method\":\"Files.GetDirectory\",\"id\":\"VS4\",\"params\":{\"directory\":\"$VideoDirectory4\",\"sort\":{\"order\":\"ascending\",\"method\":\"label\",\"ignorearticle\": true}}}",                        "queryresult":"$.result.files.*",
+                           "itembrowse":"DYNAMIK JSON.parse(\"$Result\").file",
+                           "itemlabel":"DYNAMIK (JSON.parse(\"$Result\").label.length > 28)?JSON.parse(\"$Result\").label.slice(28,99):\"\"",
+                           "itemname":"DYNAMIK JSON.parse(\"$Result\").label.slice(0,28)",
+                           "itemimage":"DYNAMIK (JSON.parse(\"$Result\").playcount != 0)?\"https://raw.githubusercontent.com/jac459/meta-kodi/master/Icons/checkmark.jpg\":(JSON.parse(\"$Result\").filetype == \"directory\")?\"https://raw.githubusercontent.com/jac459/meta-kodi/master/Icons/Folder.jpg\":\"https://raw.githubusercontent.com/jac459/meta-kodi/master/Icons/File.jpg\"",
+                           "evalwrite":[{"variable":"VideoFile","value":"DYNAMIK JSON.parse(\"$Result\").file"},  
+                                       {"variable":"VideoDirectory5","value":"DYNAMIK JSON.parse(\"$Result\").file"},                                                                            
+                                       {"variable":"VideoFileType","value":"DYNAMIK JSON.parse(\"$Result\").filetype"}],
+                           "evalnext":[
+                              {
+                                 "test":"DYNAMIK (JSON.parse(\"$Result\").filetype == \"directory\")",      
+                                 "then":"VideoDirectory5"
+                              },
+                              {
+                                 "test":"DYNAMIK (JSON.parse(\"$Result\").filetype == \"file\")",      
+                                 "then":"VideoFilesPlay"
+                              }  
+                           ]}
+                        ]
+                        },  
+                     "VideoDirectory5":{
+                              "label":"VideoDirectory files",
+                              "commandset":[
+                                 {
+                                    "type":"static",
+                                    "command":"",
+                                       "itemtype":"tile",
+                                    "itemaction":""
+                                 },
+                                 {
+                                    "type":"http-get",
+                                    "command":"http://$MyKODIIp:$MyKODIPort/jsonrpc?request={\"jsonrpc\":\"2.0\",\"method\":\"Files.GetDirectory\",\"id\":\"VS5\",\"params\":{\"directory\":\"$VideoDirectory5\",\"sort\":{\"order\":\"ascending\",\"method\":\"label\",\"ignorearticle\": true}}}",
+                                    "queryresult":"$.result.files.*",
+                                    "itembrowse":"DYNAMIK JSON.parse(\"$Result\").file",
+                                    "itemlabel":"DYNAMIK (JSON.parse(\"$Result\").label.length > 28)?JSON.parse(\"$Result\").label.slice(28,99):\"\"",
+                                    "itemname":"DYNAMIK JSON.parse(\"$Result\").label.slice(0,28)",
+                                    "itemimage":"DYNAMIK (JSON.parse(\"$Result\").playcount != 0)?\"https://raw.githubusercontent.com/jac459/meta-kodi/master/Icons/checkmark.jpg\":(JSON.parse(\"$Result\").filetype == \"directory\")?\"https://raw.githubusercontent.com/jac459/meta-kodi/master/Icons/Folder.jpg\":\"https://raw.githubusercontent.com/jac459/meta-kodi/master/Icons/File.jpg\"",
+                                    "evalwrite":[{"variable":"VideoFile","value":"DYNAMIK JSON.parse(\"$Result\").file"},    
+                                                {"variable":"VideoDirectory6","value":"DYNAMIK JSON.parse(\"$Result\").file"},                                                                            
+                                                {"variable":"VideoFileType","value":"DYNAMIK JSON.parse(\"$Result\").filetype"}],
+                                    "evalnext":[
+                                       {
+                                          "test":"DYNAMIK (JSON.parse(\"$Result\").filetype == \"directory\")",      
+                                          "then":"VideoDirectory6"
+                                       },
+                                       {
+                                          "test":"DYNAMIK (JSON.parse(\"$Result\").filetype == \"file\")",      
+                                          "then":"VideoFilesPlay"
+                                       }  
+                                 ]}
+                        ]
+                        },   
+                     "VideoDirectory6":{
+                        "label":"VideoDirectory files",
+                        "commandset":[
+                              {
+                                 "type":"http-get",
+                                 "command":"http://$MyKODIIp:$MyKODIPort/jsonrpc?request={\"jsonrpc\":\"2.0\",\"method\":\"Files.GetDirectory\",\"id\":\"VS6\",\"params\":{\"directory\":\"$VideoDirectory6\",\"sort\":{\"order\":\"ascending\",\"method\":\"label\",\"ignorearticle\": true}}}",
+                                 "queryresult":"$.result.files.*",
+                                 "itembrowse":"DYNAMIK JSON.parse(\"$Result\").file",
+                                 "itemlabel":"DYNAMIK (JSON.parse(\"$Result\").label.length > 28)?JSON.parse(\"$Result\").label.slice(28,99):\"\"",
+                                 "itemname":"DYNAMIK JSON.parse(\"$Result\").label.slice(0,28)",
+                                 "itemimage":"DYNAMIK (JSON.parse(\"$Result\").playcount != 0)?\"https://raw.githubusercontent.com/jac459/meta-kodi/master/Icons/checkmark.jpg\":(JSON.parse(\"$Result\").filetype == \"directory\")?\"https://raw.githubusercontent.com/jac459/meta-kodi/master/Icons/Folder.jpg\":\"https://raw.githubusercontent.com/jac459/meta-kodi/master/Icons/File.jpg\"",
+                                 "evalwrite":[{"variable":"VideoFile","value":"DYNAMIK JSON.parse(\"$Result\").file"}, 
+                                             {"variable":"VideoDirectory6","value":"DYNAMIK JSON.parse(\"$Result\").file"},                                                                            
+                                             {"variable":"VideoFileType","value":"DYNAMIK JSON.parse(\"$Result\").filetype"}],
+                                 "evalnext":[
+                                    {
+                                       "test":"DYNAMIK (JSON.parse(\"$Result\").filetype == \"directory\")",      
+                                       "then":"VideoDirectory6"
+                                    },
+                                    {
+                                       "test":"DYNAMIK (JSON.parse(\"$Result\").filetype == \"file\")",      
+                                       "then":"VideoFilesPlay"
+                                    }  
+                                 ]}
+                        ]
+                        },                                                                                                                                                                                                                                    
+                     "Play":{   
+                        "label":"Play video file",
+                        "commandset":[
+                           {
+                              "type":"http-rest", 
+                              "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Player.Open\",\"id\":\"VPlay\",\"params\":{\"item\":  {\"file\":\"$VideoFile\"}}}}"
+                           } 
+                        ]
+                     },
+                     "VideoFilesPlay":{   
+                        "label":"A single video",
+                        "commandset":[
+                           {
+                              "type":"static",
+                              "command":"{}",
+                              "itemtype":"tile",
+                              "itemaction":"",
+                              "itemimage":"$VideoBanner"
+                           },
+                           {
+                           "type":"static",
+                           "command":"{}",
+                           "queryresult":"$",
+                           "itemtext":"This is a testm, not working",
+                           "itemtype":"header",
+                           "itemaction":""                  
+                           },            
+                           {
+                           "type":"static",
+                           "command":"{}",
+                           "queryresult":"$",
+                           "itemtext":"Stop",
+                           "itemtype":"controlbutton",
+                           "itemaction":""
+                           },
+                           {
+                           "type":"static",
+                           "command":"{}",
+                           "queryresult":"",  
+                           "itemlabel":"DYNAMIK \"$VideoFile\".slice(0,31)",
+                           "itemname":"DYNAMIK (\"$VideoFile\".length > 31)?\"$VideoFile\".substr(\"$VideoFile\".length - 31):\"$VideoFile\"",
+                           "itembrowse":"12",
+                           "itemimage":"$VideoBanner",
+                           "itemaction":"Play"                  
+                           }
+                        ]
+                     },   
+                     "Pause":{   
+                        "label":"Pause play",
+                        "commandset":[
+                           {
+                           "type":"http-rest",
+                           "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"method\":\"Player.PlayPause\",\"id\":\"\",\"params\":{\"playerid\":1}}}"           
+                              }
+                           ]
+                     },
+                     "Stop":{   
+                        "label":"Stop play",
+                        "commandset":[
+                           {
+                           "type":"http-rest",
+                           "command":"{\"verb\":\"post\",\"call\":\"http://$MyKODIIp:$MyKODIPort/jsonrpc?request=\", \"message\":{\"jsonrpc\":\"2.0\",\"id\":\"POWER-ON\",\"method\":\"Player.Stop\", \"params\":{\"playerid\": 1}}}"  
+                           }
+                        ]
+                     }   
+                  }
+               }
+            } 
+         }
+      }
+      
