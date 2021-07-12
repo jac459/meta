@@ -7,7 +7,7 @@
     "discover":{
        "welcomeheadertext":"WebOS TV",
        "welcomedescription":"powered by meta\nby JAC459",
-       "command":{"type":"static", "command":"$LocalDevices", "queryresult":"$[?(@.mac&&@.ip&&@.short=='_airplay._tcp.local')][?(@property === 'name' && @.match(/^\\[LG\\] webOS TV/i))]^"}        
+       "command":{"type":"static", "command":"$LocalDevices", "queryresult":"$[?(@.mac&&@.ip&&@.short=='_airplay._tcp.local')][?(@property === 'name' && @.match(/webos/i))]^"}        
     },
     "template":
     {
