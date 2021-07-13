@@ -137,7 +137,7 @@ function networkDiscovery() {
                       }
                   })
                   delayWrite = undefined;
-                }, 10000);
+                }, 10000); 
               }
             }
           })
