@@ -52,92 +52,97 @@ function networkDiscovery() {
     }
 
     //Unleaching discovery
-    //Mac addresses.
-    find().then(devices => {
-      mdns.on('response', function(response) {
-        let myObjectPTR, myObjectIP, myObjectMac;
-        let myName, myShortName, myIP, myMAC, myPort = undefined
-        if (response.additionals) {
-          myObjectPTR = response.additionals.find((answer) => {return answer.type == 'PTR'});
+    mdns.on('response', function(response) {
+      let myObjectPTR, myObjectIP, myObjectMac;
+      let hasChanged = false;
+      let myName, myShortName, myIP, myMac, myPort = undefined
+      if (response.additionals) {
+        myObjectPTR = response.additionals.find((answer) => {return answer.type == 'PTR'});
+        if (myObjectPTR && myObjectPTR.data) {
+          myName = myName?myName:myObjectPTR.data; 
+        };
+        if (myObjectPTR && myObjectPTR.name) {
+          myShortName = myShortName?myShortName:myObjectPTR.name; 
+        };
+        myObjectPTR = response.additionals.find((answer) => {return (answer.type == 'SRV')});
+          if (myObjectPTR && myObjectPTR.data) {
+            myPort = myPort?myPort:myObjectPTR.data.port; 
+          };
+        myObjectIP = response.additionals.find((answer) => {return answer.type == 'A'});
+          if (myObjectIP && myObjectIP.data) {myIP = myObjectIP.data};
+          myObjectMac = response.additionals.find((answer) => {return answer.type == 'AAA'});
+          if (myObjectMac && myObjectMac.data) {myMac = myObjectMac.data};
+      }  
+      if (response.authorities) {
+        myObjectPTR = response.authorities.find((answer) => {return answer.type == 'PTR'});
           if (myObjectPTR && myObjectPTR.data) {
             myName = myName?myName:myObjectPTR.data; 
           };
           if (myObjectPTR && myObjectPTR.name) {
             myShortName = myShortName?myShortName:myObjectPTR.name; 
           };
-          myObjectPTR = response.additionals.find((answer) => {return (answer.type == 'SRV')});
-            if (myObjectPTR && myObjectPTR.data) {
-              myPort = myPort?myPort:myObjectPTR.data.port; 
-            };
-  //          if (myObjectPTR && myObjectPTR.name) {
-  //            myShortName = myShortName?myShortName:myObjectPTR.name; 
-  //          };
-          myObjectIP = response.additionals.find((answer) => {return answer.type == 'A'});
-            if (myObjectIP && myObjectIP.data) {myIP = myObjectIP.data};
-            myObjectMac = response.additionals.find((answer) => {return answer.type == 'AAA'});
-            if (myObjectMac && myObjectMac.data) {myMac = myObjectMac.data};
-        }  
-        if (response.authorities) {
-          myObjectPTR = response.authorities.find((answer) => {return answer.type == 'PTR'});
-            if (myObjectPTR && myObjectPTR.data) {
-              myName = myName?myName:myObjectPTR.data; 
-            };
-            if (myObjectPTR && myObjectPTR.name) {
-              myShortName = myShortName?myShortName:myObjectPTR.name; 
-            };
-          myObjectPTR = response.authorities.find((answer) => {return (answer.type == 'SRV')});
-            if (myObjectPTR && myObjectPTR.data) {
-              myPort = myPort?myPort:myObjectPTR.data.port; 
-            };
-  //          if (myObjectPTR && myObjectPTR.name) {
-  //            myShortName = myShortName?myShortName:myObjectPTR.name; 
-  //          };
-          myObjectIP = response.authorities.find((answer) => {return answer.type == 'A'});
-            if (myObjectIP && myObjectIP.data) {myIP = myObjectIP.data};
-            myObjectMac = response.authorities.find((answer) => {return answer.type == 'AAA'});
-            if (myObjectMac && myObjectMac.data) {myMac = myObjectMac.data};
-          }
-        if (response.answers) {
-          myObjectPTR = response.answers.find((answer) => {return (answer.type == 'PTR')});
-            if (myObjectPTR && myObjectPTR.data) {
-              myName = myName?myName:myObjectPTR.data; 
-            };
-            if (myObjectPTR && myObjectPTR.name) {
-              myShortName = myShortName?myShortName:myObjectPTR.name; 
-            };
-          myObjectPTR = response.answers.find((answer) => {return (answer.type == 'SRV')});
-            if (myObjectPTR && myObjectPTR.data) {
-              myPort = myPort?myPort:myObjectPTR.data.port; 
-            };
-  //          if (myObjectPTR && myObjectPTR.name) {
-  //            myShortName = myShortName?myShortName:myObjectPTR.name; 
-  //          };
-          myObjectIP = response.answers.find((answer) => {return answer.type == 'A'});
-            if (myObjectIP && myObjectIP.data) {myIP = myObjectIP.data};
-            myObjectMac = response.answers.find((answer) => {return answer.type == 'AAA'});
-            if (myObjectMac && myObjectMac.data) {myMac = myObjectMac.data};
-          }
-        
-        if (localDevices.findIndex((device)=>{return (device.name == myName && device.ip == myIP&& device.port == myPort)})<0) {
-          if (!myMAC) {
-            let ind = devices.findIndex((dev) => {return dev.ip == myIP});
-            if (ind>=0) {myMAC = devices[ind].mac}
-          }
-          localDevices.push({"name":myName,"ip":myIP,"mac":myMAC, "short":myShortName, "port":myPort});
-          if (delayWrite == undefined) {//In order to be gentle on storage.
-            delayWrite = setTimeout(() => {
-              fs.writeFile(discoveryBuffer, JSON.stringify(localDevices), err => {
-                if (err) {
-                  metaLog({type:LOG_TYPE.ERROR, content:"Error writing the discovery file. " + err});
-                  } else {
-                    metaLog({type:LOG_TYPE.WARNING, content:"Discovery updated"});
-                  }
-              })
-              delayWrite = undefined;
-            }, 10000);
-          }
+        myObjectPTR = response.authorities.find((answer) => {return (answer.type == 'SRV')});
+          if (myObjectPTR && myObjectPTR.data) {
+            myPort = myPort?myPort:myObjectPTR.data.port; 
+          };
+        myObjectIP = response.authorities.find((answer) => {return answer.type == 'A'});
+          if (myObjectIP && myObjectIP.data) {myIP = myObjectIP.data};
+          myObjectMac = response.authorities.find((answer) => {return answer.type == 'AAA'});
+          if (myObjectMac && myObjectMac.data) {myMac = myObjectMac.data};
         }
-      })
+      if (response.answers) {
+        myObjectPTR = response.answers.find((answer) => {return (answer.type == 'PTR')});
+          if (myObjectPTR && myObjectPTR.data) {
+            myName = myName?myName:myObjectPTR.data; 
+          };
+          if (myObjectPTR && myObjectPTR.name) {
+            myShortName = myShortName?myShortName:myObjectPTR.name; 
+          };
+        myObjectPTR = response.answers.find((answer) => {return (answer.type == 'SRV')});
+          if (myObjectPTR && myObjectPTR.data) {
+            myPort = myPort?myPort:myObjectPTR.data.port; 
+          };
+//          if (myObjectPTR && myObjectPTR.name) {
+//            myShortName = myShortName?myShortName:myObjectPTR.name; 
+//          };
+        myObjectIP = response.answers.find((answer) => {return answer.type == 'A'});
+          if (myObjectIP && myObjectIP.data) {myIP = myObjectIP.data};
+          myObjectMac = response.answers.find((answer) => {return answer.type == 'AAA'});
+          if (myObjectMac && myObjectMac.data) {myMac = myObjectMac.data};
+        }
+      
+      if (localDevices.findIndex((device)=>{return (device.name == myName && device.short == myShortName && device.ip == myIP&& device.port == myPort &&device.mac == myMac)})<0) {
+        if (myIP!=undefined) {
+          find(myIP).then(device => {
+            myMac = device.mac;
+            indport = localDevices.findIndex((device)=>{return (device.name == myName && device.short == myShortName && device.ip == myIP&&device.mac == myMac)});//avoid device with too many ports
+            if (indport<0) {
+              if (myIP!=undefined || myMac!=undefined) {
+                hasChanged = true;
+                localDevices.push({"name":myName,"ip":myIP,"mac":myMac, "short":myShortName, "port":myPort});
+              }
+            }
+            else {
+              hasChanged = true;
+              localDevices[indport].port = myPort;
+            }
+            if (hasChanged) {
+              if (delayWrite == undefined) {//In order to be gentle on storage.
+                delayWrite = setTimeout(() => {
+                  fs.writeFile(discoveryBuffer, JSON.stringify(localDevices), err => {
+                    if (err) {
+                      metaLog({type:LOG_TYPE.ERROR, content:"Error writing the discovery file. " + err});
+                      } else {
+                        metaLog({type:LOG_TYPE.WARNING, content:"Discovery updated"});
+                      }
+                  })
+                  delayWrite = undefined;
+                }, 10000);
+              }
+            }
+          })
+        }
+      }
     });
 
     //multicast-dns
@@ -148,7 +153,7 @@ function networkDiscovery() {
     setTimeout(() => {
       metaLog({type:LOG_TYPE.INFO, content:"stopping discovery process."});
       mdns.destroy();
-    }, 10800000);
+    }, 600000);
   }) 
   return null;
 }
