@@ -3,16 +3,15 @@
     "manufacturer":"LG",
     "type":"TV",
     "version":8,
-    
     "discover":{
        "welcomeheadertext":"WebOS TV",
        "welcomedescription":"powered by meta\nby JAC459",
-       "command":{"type":"static", "command":"$LocalDevices", "queryresult":"$[?(@.mac&&@.ip&&@.short=='_airplay._tcp.local')][?(@property === 'name' && @.match(/webos/i))]^"}        
+       "command": {"type":"static", "command":"$LocalDevices", "queryresult":"$[?(@.mac&&@.ip&&@.short)][?(@property === 'name' && @.match(/webos/i))]^"}   
     },
     "template":
     {
-       "dynamicname":"DYNAMIK_INST_START DYNAMIK JSON.parse(\"$Result\").name.split(\"webOS \")[1].split(\".\")[0] + \" - \" + JSON.parse(\"$Result\").ip DYNAMIK_INST_END",
-       "dynamicid":"DYNAMIK_INST_START DYNAMIK JSON.parse(\"$Result\").ip DYNAMIK_INST_END",
+       "dynamicname":"DYNAMIK_INST_START DYNAMIK JSON.parse(\"$Result\").name.split(\".\")[0].substring(0,18) + \" - \" + JSON.parse(\"$Result\").ip DYNAMIK_INST_END",
+       "dynamicid":"DYNAMIK_INST_START DYNAMIK JSON.parse(\"$Result\").name + \".\" + JSON.parse(\"$Result\").ip + \".\" + JSON.parse(\"$Result\").mac + \".\" + JSON.parse(\"$Result\").short DYNAMIK_INST_END",
        
         "persistedvariables":{
             "FavoriteApps":"[]",
