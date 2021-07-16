@@ -20,4 +20,3 @@ wget https://raw.githubusercontent.com/jac459/meta/Release/variablesVault.js -O 
 mkdir active
 https://raw.githubusercontent.com/jac459/meta/Release/active/metaCore.json -P active/ -O metaCore.json
 npm install
-

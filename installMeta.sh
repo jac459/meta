@@ -28,4 +28,5 @@ pm2 start mosquitto
 pm2 start node-red
 pm2 start meta.js
 pm2 save
+cd ..
 
