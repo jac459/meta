@@ -23,7 +23,6 @@ mkdir meta
 cd meta
 mkdir active
 wget https://raw.githubusercontent.com/jac459/meta/Release/update.sh -O update.sh | . update.sh
-cd ~
 echo "*** STEP 7 - Creating the startup scripts and rebooting, you should see the meta in your neeo now ***"
 pm2 start mosquitto
 pm2 start node-red
