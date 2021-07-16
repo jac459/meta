@@ -17,7 +17,7 @@ sudo systemctl disable mosquitto.service
 echo "*** STEP 4 - With NODE-RED, your Raspberry will be the king of IOT with many protocols and devices supported ***"
 bash <(curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/deb/update-nodejs-and-nodered)
 echo "*** STEP 5 - Now we create the possibility to orchestrate everything using pm2 ***"
-wget -qO- https://getpm2.com/install.sh | bash
+sudo npm install -g pm2
 echo "*** STEP 6 - Now it is time to install the meta ***"
 mkdir meta
 cd meta
