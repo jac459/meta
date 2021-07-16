@@ -25,7 +25,8 @@ const SOCKETIO = 'socketIO';
 const JSONTCP = 'jsontcp';
 const MQTT = 'mqtt';
 const WOL = 'wol';
-const { ProcessingManager, httpgetProcessor, httprestProcessor, httpgetSoapProcessor, httppostProcessor, cliProcessor, staticProcessor, webSocketProcessor, jsontcpProcessor, mqttProcessor, socketIOProcessor, wolProcessor, replProcessor } = require('./ProcessingManager');
+const MDNS = 'mDNS';
+const { ProcessingManager, httpgetProcessor, httprestProcessor, httpgetSoapProcessor, httppostProcessor, cliProcessor, staticProcessor, webSocketProcessor, jsontcpProcessor, mqttProcessor, socketIOProcessor, mDNSProcessor, wolProcessor, replProcessor } = require('./ProcessingManager');
 const { metaMessage, LOG_TYPE } = require("./metaMessage");
 
 const processingManager = new ProcessingManager();
@@ -41,6 +42,7 @@ const myJsontcpProcessor = new jsontcpProcessor();
 const myMqttProcessor = new mqttProcessor();
 const myReplProcessor = new replProcessor();
 const myHttprestProcessor = new httprestProcessor();
+const myMDNSProcessor = new mDNSProcessor();
 
 //LOGGING SETUP AND WRAPPING
 //Disable the NEEO library console warning.
@@ -335,6 +337,9 @@ module.exports = function controller(driver) {
     else if (commandtype == WOL) {
       processingManager.processor = myWolProcessor;
     }
+    else if (commandtype == MDNS) {
+      processingManager.processor = myMDNSProcessor;
+    }
     else if (commandtype == JSONTCP) {
       processingManager.processor = myJsontcpProcessor;
     }
@@ -344,7 +349,7 @@ module.exports = function controller(driver) {
     else if (commandtype == REPL) {
       processingManager.processor = myReplProcessor;
     }
-    else {metaLog({type:LOG_TYPE.ERROR, content:'Error in meta settings: The commandtype to process is not defined: ' + commandtype});}
+    else {metaLog({type:LOG_TYPE.ERROR, content:'Error in meta: The commandtype to process is not defined: ' + commandtype});}
   };
 
   this.initiateProcessor = function(commandtype, deviceId) { // Initiate communication protocoles

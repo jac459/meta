@@ -19,12 +19,10 @@ bash <(curl -sL https://raw.githubusercontent.com/node-red/linux-installers/mast
 echo "*** STEP 5 - Now we create the possibility to orchestrate everything using pm2 ***"
 wget -qO- https://getpm2.com/install.sh | bash
 echo "*** STEP 6 - Now it is time to install the meta ***"
-wget https://github.com/jac459/meta/archive/refs/tags/latest.zip
-unzip *.zip
-mv meta-* meta
-rm *.zip
+mkdir meta
 cd meta
-npm install
+mkdir active
+wget https://raw.githubusercontent.com/jac459/meta/Release/update.sh | bash
 cd ~
 echo "*** STEP 7 - Creating the startup scripts and rebooting, you should see the meta in your neeo now ***"
 pm2 start mosquitto
