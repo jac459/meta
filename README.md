@@ -8,10 +8,10 @@ You can join the community.. \
 ..or on Telegram (backup): https://t.me/joinchat/NocMDU9RCVP9hSCJxPsCEg
  
 #### Some driver examples:
-####### 1 - Roon Driver (control your roon music/zones/outputs)
+###### 1 - Roon Driver (control your roon music/zones/outputs)
 Demo: https://www.youtube.com/watch?v=iphGhOKRXJQ \
 Specific install instructions: https://github.com/jac459/meta-roon
-##### 2 - Broadlink Driver (learn and send IR codes)
+###### 2 - Broadlink Driver (learn and send IR codes)
 Demo: https://www.youtube.com/watch?v=Ub8pFTeWAiU \
 Specific install instructions: https://github.com/jac459/meta-broadlink 
 ##### 3 - Philips Hue Driver (as the standard Philips Hue but with color change capability)
