@@ -8,57 +8,53 @@ You can join the community.. \
 ..or on Telegram (backup): https://t.me/joinchat/NocMDU9RCVP9hSCJxPsCEg
  
 #### Some driver examples:
-###### 1 - Roon Driver (control your roon music/zones/outputs)
+1 - Roon Driver (control your roon music/zones/outputs)
 Demo: https://www.youtube.com/watch?v=iphGhOKRXJQ \
 Specific install instructions: https://github.com/jac459/meta-roon
-###### 2 - Broadlink Driver (learn and send IR codes)
+2 - Broadlink Driver (learn and send IR codes)
 Demo: https://www.youtube.com/watch?v=Ub8pFTeWAiU \
 Specific install instructions: https://github.com/jac459/meta-broadlink 
-##### 3 - Philips Hue Driver (as the standard Philips Hue but with color change capability)
+3 - Philips Hue Driver (as the standard Philips Hue but with color change capability)
 Instructions: https://github.com/jac459/meta-hue
-##### 4 - Volumio (Music player)
+4 - Volumio (Music player)
 Demo: https://www.youtube.com/watch?v=ybQrpgSK1yM&t=34 \
 Instructions: https://github.com/jac459/meta-volumio
-##### 5 - Yamaha AVR
+5 - Yamaha AVR
 Instrutions: https://github.com/jac459/meta-yamahaAVR
-  
+
 ## Releases
 
 ### v1.0.1 
-#### 1 - Main drivers supported: 
+1 - Main drivers supported: 
 Hue, Yamaha AVR, Broadlink (Generic + Air Conditionnated), Volumio, Roon, Kodi, LG webOS.
-#### 2 - Main features:
-##### 2.1 - 0.9.8 features + meta-core driver allowing to download and install new drivers, reset drivers (datastore) or update the meta + improved discovery (for maker).
-##### 2.2 - Missing features: N/A
-##### 2.3 - Known bugs: N/A
-
+2 - Main features:
+2.1 - 0.9.8 features + meta-core driver allowing to download and install new drivers, reset drivers (datastore) or update the meta + improved discovery (for maker).
+2.2 - Missing features: N/A
+2.3 - Known bugs: N/A
 ### v0.9.8 
-#### 1 - Main drivers supported: 
+1 - Main drivers supported: 
 Hue, Yamaha AVR, Broadlink (Generic + Air Conditionnated), Volumio, Roon, Kodi, LG webOS.
-#### 2 - Main features:
-##### 2.1 - 0.9.5 features + full support of websockets, buttons in list, wake-on-lan capability, installation shell, meta management driver with capacity to restart meta components, reset the drivers datastore.
-##### 2.2 - Missing features: N/A
-##### 2.3 - Known bugs: N/A
-
-
+2 - Main features:
+2.1 - 0.9.5 features + full support of websockets, buttons in list, wake-on-lan capability, installation shell, meta management driver with capacity to restart meta components, reset the drivers datastore.
+2.2 - Missing features: N/A
+2.3 - Known bugs: N/A
 ### v0.9.5 (current release)
-#### 1 - Main drivers supported: 
+1 - Main drivers supported: 
 Hue, Yamaha AVR, Broadlink (Generic + Air Conditionnated), 
 Volumio, Roon.
-#### 2 - Main features:
-##### 2.1 - Standard features + node-red usage for broadlink + enhanced discovery + enhanced devices monitoring + hosting in raspberry pi4
-##### 2.2 - Missing features: meta management driver not compatible yet.
-##### 2.3 - Known bugs: When adding a device, refreshing the page could generate double monitoring of device (waste of resources).
+2 - Main features:
+2.1 - Standard features + node-red usage for broadlink + enhanced discovery + enhanced devices monitoring + hosting in raspberry pi4
+2.2 - Missing features: meta management driver not compatible yet.
+2.3 - Known bugs: When adding a device, refreshing the page could generate double monitoring of device (waste of resources).
 
 ## A - How to install
-
 ### Automatic install:
 Simply use this script to install the meta in your raspberry PI:
 ```
 bash <(wget -qO- https://raw.githubusercontent.com/jac459/meta/Release/installMeta.sh)
 ```
 
-#### Step by step raspberry + neeo install for total beginner.
+### Step by step raspberry + neeo install for total beginner.
 ##### You will need:
 ###### 1 MicroSd card (8gb Or 16Gb will do, even less I think but I didn't test)
 ###### 1 Raspberry (4b advised, 2GB is largely enough, 1GB works too). Pi3 should work also but discovery may be long.
