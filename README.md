@@ -47,7 +47,7 @@ Volumio, Roon.
 ### Experimental Automatic install:
 Simply use this script to install the meta in your raspberry PI:
 ```
-wget https://raw.githubusercontent.com/jac459/meta/master/installMeta.sh && . ./installMeta.sh
+bash <(wget -qO- https://raw.githubusercontent.com/jac459/meta/Release/installMeta.sh)
 ```
 
 ### Alternatively you can install manually with following steps
