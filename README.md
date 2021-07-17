@@ -22,11 +22,19 @@ Instructions: https://github.com/jac459/meta-volumio
 ##### 5 - Yamaha AVR
 Instrutions: https://github.com/jac459/meta-yamahaAVR
   
-## 0 - Releases
+## Releases
+
+### v1.0.1 
+#### 1 - Main drivers supported: 
+Hue, Yamaha AVR, Broadlink (Generic + Air Conditionnated), Volumio, Roon, Kodi, LG webOS.
+#### 2 - Main features:
+##### 2.1 - 0.9.8 features + meta-core driver allowing to download and install new drivers, reset drivers (datastore) or update the meta + improved discovery (for maker).
+##### 2.2 - Missing features: N/A
+##### 2.3 - Known bugs: N/A
+
 ### v0.9.8 
 #### 1 - Main drivers supported: 
-Hue, Yamaha AVR, Broadlink (Generic + Air Conditionnated), 
-Volumio, Roon, Kodi, LG webOS.
+Hue, Yamaha AVR, Broadlink (Generic + Air Conditionnated), Volumio, Roon, Kodi, LG webOS.
 #### 2 - Main features:
 ##### 2.1 - 0.9.5 features + full support of websockets, buttons in list, wake-on-lan capability, installation shell, meta management driver with capacity to restart meta components, reset the drivers datastore.
 ##### 2.2 - Missing features: N/A
