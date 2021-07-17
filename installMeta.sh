@@ -22,6 +22,7 @@ echo "*** STEP 6 - Now it is time to install the meta ***"
 mkdir meta
 cd meta
 mkdir active
+mkdir library
 bash <(wget -qO- https://raw.githubusercontent.com/jac459/meta/Release/update.sh)
 echo "*** STEP 7 - Creating the startup scripts and rebooting, you should see the meta in your neeo now ***"
 pm2 start mosquitto
