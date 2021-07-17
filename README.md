@@ -46,31 +46,31 @@ Instrutions: https://github.com/jac459/meta-yamahaAVR
 ###### 2.2 - Missing features: meta management driver not compatible yet.
 ###### 2.3 - Known bugs: When adding a device, refreshing the page could generate double monitoring of device (waste of resources).
 ## A - How to install
-### A.1 Automatic install:
 Simply use this script to install the meta in your raspberry PI:
 ```
 bash <(wget -qO- https://raw.githubusercontent.com/jac459/meta/Release/installMeta.sh)
 ```
-### A.2 Step by step raspberry + neeo install for total beginner (on top of automatic install).
-##### A.2.1 You will need:
+## B - HOw to install if you are not a standard user.
+### B.2 Step by step raspberry + neeo install for total beginners.
+##### B.2.1 You will need:
 ###### - 1 MicroSd card (8gb Or 16Gb will do, even less I think but I didn't test)
 ###### - 1 Raspberry (4b advised, 2GB is largely enough, 1GB works too). Pi3 should work also but discovery may be long.
 ###### - 1 Computer.
 ###### - 1 Neeo Brain
 ###### - 1 MicroSd card reader/writer.
-##### A.2.2 Needed software:
+##### B.2.2 Needed software:
 ###### Balena Etcher:
 https://www.balena.io/etcher/
 ###### RaspbianOS Lite:
 https://www.raspberrypi.org/software/operating-systems/
 ###### Putty (if in windows, not needed for MacOS)
 https://www.putty.org/
-###### A.2.3 Step 1 - Setup the Raspberry
+###### B.2.3 Step 1 - Setup the Raspberry
 Insert the microSD in the card reader and in your PC.
 DO NOT FORMAT.
 Start Balena Etcher. Choose the raspberry OS you have downloaded using the link given on the previous step. Choose the microSD card and click FLASH.
 Hence Done, DO NOT FORMAT. Unplug the MicroSD and plug again. DO NOT FORMAT. Go to the disk you just created (should be called BOOT). and at the root of this disk, create a file named ssh. On windows, to do that simply right click and choose to create a text file. Replace the name AND the extension of the file (for example "new file.txt" by "ssh"). This will allow you to get access to your raspberry later.
-###### A.2.3 Step 2 - Gain access to the Raspberry
+###### B.2.3 Step 2 - Gain access to the Raspberry
 Before pluging your raspberry. You can open a command in your windows (on the magnifier next to the windows button, bottom left, type cmd). In the new black window created, just type arp -a. Leave it like that.
 Now you can insert the MicroSD card in your raspberry and plug it. YOU NEED TO USE A NETWORK CABLE AT FIRST. At least for a while, after you can configure wifi but for first boot, just connect through a RJ45 network cable to your router.
 When your raspberry as booted, you can go back to the very same black window you opened (or open one in your macos) and type:
@@ -95,7 +95,7 @@ Now your rapsberry is being configured. It will take a good 20 minutes. You will
 Hence the script is done, you are done.
 You can go to neeo and search a new device. You should find the meta-core driver.
 
-### A.3 If you are a Raspberry/Linux black belt, a few infos:
+### B.3 If you are a Raspberry/Linux black belt, a few infos:
 ##### - The meta can be installed like any node.js program by taking the files and typing "npm install".
 ##### - The meta NEEDS MQTT to run. NODE-RED is highly advised.
 ##### - MQTT is expected to not have any authentication.
