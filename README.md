@@ -44,11 +44,33 @@ Volumio, Roon.
 
 ## A - How to install
 
-### Experimental Automatic install:
+### Automatic install:
 Simply use this script to install the meta in your raspberry PI:
 ```
 bash <(wget -qO- https://raw.githubusercontent.com/jac459/meta/Release/installMeta.sh)
 ```
+
+#### Step by step raspberry + neeo install for total beginner.
+##### You will need:
+###### 1 MicroSd card (8gb Or 16Gb will do, even less I think but I didn't test)
+###### 1 Raspberry (4b advised, 2GB is largely enough, 1GB works too). Pi3 should work also but discovery may be long.
+###### 1 Computer.
+###### 1 Neeo Brain
+###### 1 MicroSd card reader/writer.
+##### Needed software:
+###### Balena Etcher:
+https://www.balena.io/etcher/
+###### RaspbianOS Lite:
+https://www.raspberrypi.org/software/operating-systems/
+###### Putty (if in windows, not needed for MacOS)
+https://www.putty.org/
+###### Step 1 - Setup the Raspberry
+
+
+
+
+
+
 
 ### Alternatively you can install manually with following steps
 All following install-processes are done by terminal commands. If you have a display connected to your raspberry pi you can open the LXTerminal for typing the commands. If you are using your raspberry pi in headless mode you can connect to it via PuTTY.
