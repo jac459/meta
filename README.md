@@ -95,69 +95,27 @@ Now your rapsberry is being configured. It will take a good 20 minutes. You will
 Hence the script is done, you are done.
 You can go to neeo and search a new device. You should find the meta-core driver.
 
-
-
-
-You can now "testrun" the meta by typing:
+### A.3 If you are a Raspberry/Linux black belt, a few infos:
+##### - The meta can be installed like any node.js program by taking the files and typing "npm install".
+##### - The meta NEEDS MQTT to run. NODE-RED is highly advised.
+##### - MQTT is expected to not have any authentication.
+##### - Meta-core driver expect node-red, mqtt and meta to by run by pm2. Not by services. This is not a big deal if you don't plan to use it.
+##### - The meta expect 2 folders: library (for all drivers) and active (for activated drivers).
+##### - You can configure the name, port of the meta in order to run multiple instances of the meta (have different names and port for the neeo). This is very useful if you want to run a new version of the meta without taking risk on your previous version.
+##### - You can configure the mqtt instances and the directory names and location of the active and library folders. This is NOT thoroughly tested so trial and error may apply.
+##### - You can test run your meta by typing (don't forget to stop the pm2 instance).
  ```
  node meta '{"LogSeverity":"VERBOSE"}'
  ```
-
-This will run the meta in the opened terminal window. The start option '{"LogSeverity":"VERBOSE"}' will give you an awfull lot of logs. \
-You can now go to your NEEO app and search for new devices. As a keyword you can use "meta" to find the related device drivers. Also you can install and (test)run a device if you wish. \
-As soon as you close the the terminal window the meta will stop running. Therefore it is recommended to use pm2 for running the driver (chapter 4). \
-If you need to run the meta in the terminal for some reason you can type (please make sure you are not running it in pm2 at the same time):
- ```
- cd /home/pi/meta
- node meta '{"LogSeverity":"VERBOSE"}'
- ```
-Note: If the meta is not running the commands for installed devices wont be processed. However all installed devices (by NEEO app) will remain installed to your NEEO.
-
-### 3a - Updating the meta Driver
-If you already use meta and you have custom drivers in the active folder please make a backup copy outside the meta folder.  \
-Next just follow the steps of chapter 2 and 3 to get yourself a fresh package of meta. The old files will be overwritten in the process.
-
-### 4 - Running the meta in pm2
-pm2 will make the metadriver run in the background so you dont have to have a terminal open. \
-First browse to the install folder of the meta driver:
- ```
- cd /home/pi/meta
- ```
-Now start meta in pm2:
- ``` 
- pm2 start meta.js
- ```
-To save the the current running processes (including the just started meta.js) in pm2 type:
- ``` 
- pm2 save
- ```
-Next we make pm2 restart automatically after rebooting the pi. This will start pm2 with the saved processes:
- ``` 
- pm2 startup
- ```
-
-You are done. 
-
-The meta will now automatically restart after rebooting the pi. You can go to your NEEO app to search for new devices. As a keyword you can use "meta" to find the related device drivers.
+This way the meta is slower and produce an awful lot of logs. You can try to change the level of log and the component(s) logging:
+```
+'{"LogSeverity":"INFO","Components":["meta","metaController"]}'
+```
+##### - You can also force to use a specific brain address:
+```'{"Brain":"192.168.1.144","LogSeverity":"INFO","Components":["meta"]}' ```
 
 
-#### Some additional pm2 Commands to help you out in special Conditions
-List all processes in pm2 (like a "Taskmanager"):
- ```
- pm2 list
- ```
-Restart the meta process in pm2:
- ```
- pm2 restart meta
- ```
-
-Stop the meta process in pm2:
- ```
- pm2 stop meta
- ```
-
-
-## B - Prerequisites
+### If you are a Raspberry/Linux black belt but needs a few reminders.
 In order to run properly, the meta needs to run next to a MQTT Broker and a node-red server and in a nodejs environment.
 This section explains how to install all this in a Raspberry Pi. It is very similar with MacOs (I run it on a M1) and any other linux. This can also be run on windows.
 
