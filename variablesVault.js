@@ -140,7 +140,6 @@ class variablesVault {
     this.readVariables = function(inputChain, deviceId) { //replace in the input chain, all the variables found of the same deviceId
       let preparedResult = inputChain;
       if (inputChain && typeof inputChain === 'string') {
-        preparedResult = preparedResult.replace(/\$LocalDevices/g, JSON.stringify(meta.localDevices));
         preparedResult = preparedResult.replace(/\$NeeoBrainIP/g, meta.neeoBrainIp());metaIP
         preparedResult = preparedResult.replace(/\$MetaIP/g, metaIP);
       }
@@ -164,20 +163,6 @@ class variablesVault {
     this.retrieveValueFromDataStore = function (name, deviceId) {
       return new Promise(function (resolve, reject) {
       
-        if (nets.eth0) { //trying to get the LAN address for MetaIP variable.
-          let theNet = nets.eth0.find((net)=>{return (net.family == "IPv4" && !net.internal)});
-          if (theNet) {metaIP = theNet.address}
-        } 
-        if (!metaIP && nets.en0) {//Falback to get the WAN address
-          let theNet = nets.en0.find((net)=>{return (net.family == "IPv4" && !net.internal)});  
-          if (theNet) {metaIP = theNet.address}
-        }
-        if (!metaIP && nets.wlan0) {//Falback to get the WAN address
-          let theNet = nets.wlan0.find((net)=>{return (net.family == "IPv4" && !net.internal)});  
-          if (theNet) {metaIP = theNet.address}
-        }
-        metaLog({type:LOG_TYPE.VERBOSE, content:"Meta running on Server with IP : " + metaIP});
-
         let internalVariableName = toInternalName(name, deviceId);        
         self.getDataFromDataStore().then((store) => {
           if (store) {

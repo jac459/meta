@@ -12,7 +12,7 @@ const got = require('got');
 const wol = require('wol');
 const settings = require(path.join(__dirname,'settings'));
 const { connect } = require("socket.io-client");
-
+const meta = require(path.join(__dirname,'meta'));
 //LOGGING SETUP AND WRAPPING
 //Disable the NEEO library console warning.
 const { metaMessage, LOG_TYPE } = require("./metaMessage");
@@ -788,6 +788,62 @@ class staticProcessor {
   }
 }
 exports.staticProcessor = staticProcessor;
+class mDNSProcessor {
+  initiate(connection) {
+    return new Promise(function (resolve, reject) {
+      resolve();
+    });
+  }
+  process(params) {
+    return new Promise(function (resolve, reject) {
+      resolve(JSON.stringify(meta.localDevices));
+    });
+  }
+  query(params) {
+    return new Promise(function (resolve, reject) {
+      try {
+        if (params.query != undefined  && params.query != '') {
+          resolve(JSONPath(params.query, JSON.parse(params.data)));
+        }
+        else {
+          if (params.data != undefined) {
+            if (typeof(params.data) == string){
+              resolve(JSON.parse(params.data));
+            }
+            else 
+            {
+              resolve(params.data)
+            }
+          }
+          else { resolve(); }
+        }
+      }
+      catch {
+        metaLog({type:LOG_TYPE.INFO, content:'Value is not JSON after processed by query: ' + params.query + ' returning as text:' + params.data});
+        resolve(params.data)
+      }
+    });
+  }
+  startListen(params, deviceId) {
+    return new Promise(function (resolve, reject) {
+      clearInterval(params.listener.timer);
+      params.listener.timer = setInterval(() => {
+        params._listenCallback(params.command, params.listener, deviceId);
+        resolve(params.command)
+      }, (params.listener.pooltime ? params.listener.pooltime : 1000));
+      if (params.listener.poolduration && (params.listener.poolduration != '')) {
+        setTimeout(() => {
+          clearInterval(params.listener.timer);
+        }, params.listener.poolduration);
+      }
+    });
+  }
+  stopListen(params) {
+    clearInterval(params.timer);
+  }
+}
+exports.mDNSProcessor = mDNSProcessor;
+
 class cliProcessor {
   initiate(connection) {
     return new Promise(function (resolve, reject) {

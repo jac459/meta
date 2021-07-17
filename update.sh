@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Hello, this setup program will update meta in your raspberry pi 4"
-
+mkdir active
 wget https://raw.githubusercontent.com/jac459/meta/Release/ProcessingManager.js -O ProcessingManager.js
 wget https://raw.githubusercontent.com/jac459/meta/Release/directoryHelper.js -O directoryHelper.js
 wget https://raw.githubusercontent.com/jac459/meta/Release/drivers.manifest -O drivers.manifest
@@ -17,6 +17,5 @@ wget https://raw.githubusercontent.com/jac459/meta/Release/settings.js -O settin
 wget https://raw.githubusercontent.com/jac459/meta/Release/sliderHelper.js -O sliderHelper.js
 wget https://raw.githubusercontent.com/jac459/meta/Release/switchHelper.js -O switchHelper.js
 wget https://raw.githubusercontent.com/jac459/meta/Release/variablesVault.js -O variablesVault.js
-mkdir active
 wget https://raw.githubusercontent.com/jac459/meta-core/main/metaCore.json -O ~/meta/active/metaCore.json
 npm install

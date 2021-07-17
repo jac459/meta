@@ -17,18 +17,17 @@ sudo systemctl disable mosquitto.service
 echo "*** STEP 4 - With NODE-RED, your Raspberry will be the king of IOT with many protocols and devices supported ***"
 bash <(curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/deb/update-nodejs-and-nodered)
 echo "*** STEP 5 - Now we create the possibility to orchestrate everything using pm2 ***"
-wget -qO- https://getpm2.com/install.sh | bash
+sudo npm install -g pm2
 echo "*** STEP 6 - Now it is time to install the meta ***"
-wget https://github.com/jac459/meta/archive/refs/tags/latest.zip
-unzip *.zip
-mv meta-* meta
-rm *.zip
+mkdir meta
 cd meta
-npm install
-cd ~
+mkdir active
+mkdir library
+bash <(wget -qO- https://raw.githubusercontent.com/jac459/meta/Release/update.sh)
 echo "*** STEP 7 - Creating the startup scripts and rebooting, you should see the meta in your neeo now ***"
 pm2 start mosquitto
 pm2 start node-red
-pm2 start ./meta/meta.js
+pm2 start meta.js
 pm2 save
-sudo reboot
+cd ..
+
