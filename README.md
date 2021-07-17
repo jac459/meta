@@ -119,7 +119,7 @@ This way the meta is slower and produce an awful lot of logs. You can try to cha
 In order to run properly, the meta needs to run next to a MQTT Broker and a node-red server and in a nodejs environment.
 This section explains how to install all this in a Raspberry Pi. It is very similar with MacOs (I run it on a M1) and any other linux. This can also be run on windows.
 
-### Setup your Raspberry PI.
+#### Setup your Raspberry PI.
 
 #### Get the right image.
 Instructions to create an image are very easy, you just need a micro SD card and to visit this address:
