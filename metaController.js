@@ -272,7 +272,7 @@ module.exports = function controller(driver) {
       evaldo.forEach(evalD => {
         if (evalD.test == '' || evalD.test == true) {evalD.test = true;} //in case of no test, go to the do function
         let finalDoTest = self.vault.readVariables(evalD.test, deviceId);// prepare the test to assign variable and be evaluated.
-        metaLog({type:LOG_TYPE.INFO, content:"Result to evaldo: " + finalDoTest, deviceId:deviceId});
+        metaLog({type:LOG_TYPE.INFO, content:"Intermediate Result to evaldo: " + finalDoTest, deviceId:deviceId});
         finalDoTest = self.assignTo(RESULT, finalDoTest, result);
         metaLog({type:LOG_TYPE.INFO, content:"Result to evaldo: " + finalDoTest, deviceId:deviceId});
         if (finalDoTest) {

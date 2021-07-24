@@ -17,7 +17,7 @@ class sliderHelper {
     this.variableListened = variableListened;
     this.deviceId = deviceId;
     this.name = slidername;
-    this.value = 50;
+    this.value = undefined;
     this.evaldo = evaldo;
     var self = this;
     this.get = function () {
@@ -26,6 +26,7 @@ class sliderHelper {
       });
     };
     this.update = function (deviceId, theValue) {
+      metaLog({type:LOG_TYPE.VERBOSE, content:"update to perform : new value : " + theValue + " component " + controller.name, deviceId:deviceId});
       return new Promise(function (resolve, reject) {
         if (self.value != theValue) {
           self.value = theValue;
@@ -41,6 +42,7 @@ class sliderHelper {
     };
     this.set = function (deviceId, theValue) {
       return new Promise(function (resolve, reject) {
+        metaLog({type:LOG_TYPE.VERBOSE, content:"set to perform : new value : " + theValue + " component " + controller.name, deviceId:deviceId});
         theValue = Math.round(theValue);
         if (self.value != theValue) {
           self.value = theValue;
