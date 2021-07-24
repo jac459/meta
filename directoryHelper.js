@@ -71,20 +71,16 @@ class directoryHelper {
           PastQueryId = self.actionId;
           self.actionId = undefined;          
         }
-        metaLog({type:LOG_TYPE.VERBOSE, content:PastQueryId, deviceId:deviceId});
-        metaLog({type:LOG_TYPE.VERBOSE, content:self.feederH[self.currentFeederIndex], deviceId:deviceId});
-        metaLog({type:LOG_TYPE.VERBOSE, content:self.cacheList[PastQueryId].action, deviceId:deviceId});
+        let PastQueryValue = self.cacheList[PastQueryId].myPastQuery;
+        params.browseIdentifier = params.browseIdentifier.split("$PastQueryId=")[0];
+        let commandSetIndex = params.browseIdentifier.split("$CommandSet=")[1];
+        params.browseIdentifier = params.browseIdentifier.split("$CommandSet=")[0];
         if (self.cacheList[PastQueryId].action == undefined || self.cacheList[PastQueryId].action == "") {
-          let PastQueryValue = self.cacheList[PastQueryId].myPastQuery;
-          metaLog({type:LOG_TYPE.VERBOSE, content:'PastQueryValue' + JSON.stringify(PastQueryValue), deviceId:deviceId});
-          params.browseIdentifier = params.browseIdentifier.split("$PastQueryId=")[0];
-          let commandSetIndex = params.browseIdentifier.split("$CommandSet=")[1];
-          params.browseIdentifier = params.browseIdentifier.split("$CommandSet=")[0];
           //new july 2021
           self.controller.evalWrite(self.feederH[self.currentFeederIndex].commandset[commandSetIndex].evalwrite, PastQueryValue, deviceId);
           self.controller.evalDo(self.feederH[self.currentFeederIndex].commandset[commandSetIndex].evaldo, PastQueryValue, deviceId);
+         }
         self.evalNext(deviceId, self.feederH[self.currentFeederIndex].commandset[commandSetIndex].evalnext, PastQueryValue, params.browseIdentifier);//assign the good value to know the feeder
-        }
       }
       else if (params.history != undefined && params.history.length>0 && params.offset==0 && self.previousOffset == 0) {//case where we browse backward
         self.currentFeederIndex = self.browseHistory[params.history.length];
