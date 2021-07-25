@@ -112,7 +112,7 @@ function networkDiscovery() {
           }
         
         if (localDevices.findIndex((device)=>{return (device.name == myName && device.short == myShortName && device.ip == myIP&& device.port == myPort &&device.mac == myMac)})<0) {
-          if (myIP!=undefined && myIP!="127.0.0.1") {
+          if (myIP!=undefined && myIP.startsWith("192")) {
             find(myIP).then(device => {
               if (device) {myMac = device.mac;};
               indport = localDevices.findIndex((device)=>{return (device.name == myName && device.short == myShortName && device.ip == myIP&&device.mac == myMac)});//avoid device with too many ports
@@ -153,7 +153,7 @@ function networkDiscovery() {
       setTimeout(() => {
         metaLog({type:LOG_TYPE.INFO, content:"stopping discovery process."});
         mdns.destroy();
-      }, 600000);
+      }, 300000);
     }) 
     return null;
   }
@@ -314,23 +314,28 @@ function discoveredDriverListBuilder(inputRawDriverList, outputPreparedDriverLis
 }
 
 function instanciationHelper(controller, givenResult, jsonDriver) {
-  jsonDriver = JSON.stringify(jsonDriver);
-  let slicedDriver = jsonDriver.split("DYNAMIK_INST_START ");
-  let recontructedDriver = slicedDriver[0];
-  for (let index = 1; index < slicedDriver.length; index++) {
-    //TODO Correct ugly hack suppressing the escape of quote..
-    let tempoResult = slicedDriver[index].split(" DYNAMIK_INST_END")[0].replace(/\\/g, "");
-    //let tempoResult = slicedDriver[index].split(" DYNAMIK_INST_END")[0];
-    tempoResult = controller.vault.readVariables(tempoResult, DEFAULT);
-    tempoResult = controller.assignTo("$Result", tempoResult, givenResult);
-    recontructedDriver = recontructedDriver + tempoResult;
-    recontructedDriver = recontructedDriver + slicedDriver[index].split(" DYNAMIK_INST_END")[1];
-  }
-  recontructedDriver = controller.vault.readVariables(recontructedDriver, DEFAULT);
-  metaLog({type:LOG_TYPE.VERBOSE, content:'Driver has been reconstructed.'});
-  metaLog({type:LOG_TYPE.VERBOSE, content:recontructedDriver});
+  try {
+    jsonDriver = JSON.stringify(jsonDriver);
+    let slicedDriver = jsonDriver.split("DYNAMIK_INST_START ");
+    let recontructedDriver = slicedDriver[0];
+    for (let index = 1; index < slicedDriver.length; index++) {
+      //TODO Correct ugly hack suppressing the escape of quote..
+      let tempoResult = slicedDriver[index].split(" DYNAMIK_INST_END")[0].replace(/\\/g, "");
+      //let tempoResult = slicedDriver[index].split(" DYNAMIK_INST_END")[0];
+      tempoResult = controller.vault.readVariables(tempoResult, DEFAULT);
+      tempoResult = controller.assignTo("$Result", tempoResult, givenResult);
+      recontructedDriver = recontructedDriver + tempoResult;
+      recontructedDriver = recontructedDriver + slicedDriver[index].split(" DYNAMIK_INST_END")[1];
+    }
+    recontructedDriver = controller.vault.readVariables(recontructedDriver, DEFAULT);
+    metaLog({type:LOG_TYPE.VERBOSE, content:'Driver has been reconstructed.'});
+    metaLog({type:LOG_TYPE.VERBOSE, content:recontructedDriver});
 
-  return JSON.parse(recontructedDriver);
+    return JSON.parse(recontructedDriver);
+  }
+  catch (err) {
+    return;
+  }
 }
 
 function prepareCommand(controller, commandArray, deviceId, index) {
@@ -369,7 +374,9 @@ function discoveryDriverPreparator(controller, driver, deviceId) {
                       }
                       result.forEach(element => {
                         driverInstance = instanciationHelper(controller, element, driver.template);
-                        instanciationTable.push(driverInstance);
+                        if (driverInstance != undefined) {
+                          instanciationTable.push(driverInstance);
+                        }
                       });
                       resolve(instanciationTable)
                     })
