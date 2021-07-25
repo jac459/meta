@@ -47,7 +47,7 @@
       "version": 2,
       "driverLocation": "https://raw.githubusercontent.com/jac459/yamaha-musiccast/main/yamaha-musiccast.json",
       "iconLocation":   "https://raw.githubusercontent.com/jac459/yamaha-musiccast/main/icons/yamaha_mc.png"
-    }    
+    },    
     {
       "name": "Roon",
       "author": "JAC459",
