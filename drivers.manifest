@@ -49,6 +49,14 @@
       "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-core/main/pics/core.jpg"
     },
     {
+      "name": "naim",
+      "author": "JAC459",
+      "description": "Control your naim device.",
+      "version": 2,
+      "driverLocation": "https://raw.githubusercontent.com/jac459/meta-naim/main/naim.json",
+      "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-naim/main/naim.jpg"
+    },
+    {
       "name": "Roon",
       "author": "JAC459",
       "description": "Advanced Control of Roon through node-red.",
