@@ -23,6 +23,7 @@ mkdir meta
 cd meta
 mkdir active
 mkdir library
+wget https://raw.githubusercontent.com/jac459/meta/Release/settings.js -O settings.js
 bash <(wget -qO- https://raw.githubusercontent.com/jac459/meta/Release/update.sh)
 echo "*** STEP 7 - Creating the startup scripts and rebooting, you should see the meta in your neeo now ***"
 pm2 start mosquitto
