@@ -41,6 +41,22 @@
       "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/kodi-logo.jpg"
     },
     {
+      "name": "meta-core",
+      "author": "JAC459",
+      "description": "Control your meta from the remote.",
+      "version": 2,
+      "driverLocation": "https://raw.githubusercontent.com/jac459/meta-core/main/metaCore.json",
+      "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-core/main/pics/core.jpg"
+    },
+    {
+      "name": "naim",
+      "author": "JAC459",
+      "description": "Control your naim device.",
+      "version": 2,
+      "driverLocation": "https://raw.githubusercontent.com/jac459/meta-naim/main/naim.json",
+      "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-naim/main/naim.jpg"
+    },
+    {
       "name": "Roon",
       "author": "JAC459",
       "description": "Advanced Control of Roon through node-red.",
@@ -57,14 +73,6 @@
       "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-volumio/main/pics/Volumio.jpg"
     },
     {
-      "name": "Yamaha AVR",
-      "author": "JAC459",
-      "description": "Full control of your Yamaha AVR.",
-      "version": 2,
-      "driverLocation": "https://raw.githubusercontent.com/jac459/meta-yamahaAVR/main/yamaha.json",
-      "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-yamahaAVR/main/pics/Yamaha.jpg"
-    },
-    {
       "name": "WebOS LGTV",
       "author": "JAC459",
       "description": "Control your LG TV through websockets.",
@@ -73,12 +81,20 @@
       "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-webosLGTV/main/pics/WebOS%20LG.jpg"
     },
     {
+      "name": "Yamaha AVR",
+      "author": "JAC459",
+      "description": "Full control of your Yamaha AVR.",
+      "version": 2,
+      "driverLocation": "https://raw.githubusercontent.com/jac459/meta-yamahaAVR/main/yamaha.json",
+      "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-yamahaAVR/main/pics/Yamaha.jpg"
+    },
+    {
       "name": "Yamaha MusicCast",
       "author": "MarkusM",
       "description": "Full control of Yamaha AVRs and Musiccast",
       "version": 2,
       "driverLocation": "https://raw.githubusercontent.com/jac459/yamaha-musiccast/main/yamaha-musiccast.json",
       "iconLocation":   "https://raw.githubusercontent.com/jac459/yamaha-musiccast/main/icons/yamaha_mc.png"
-    }    
+    }   
   ]
 }
