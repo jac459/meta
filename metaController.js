@@ -388,7 +388,8 @@ module.exports = function controller(driver) {
         command = self.vault.readVariables(command, deviceId);
         command = self.assignTo(RESULT, command, '');
         const params = {'command' : command, 'connection' : connection};
-        metaLog({type:LOG_TYPE.VERBOSE, content:'Final command to be processed: '+command+ ' - ' + commandtype, deviceId:deviceId});
+        metaLog({type:LOG_TYPE.VERBOSE, content:'Final command to be processed: ' + commandtype, deviceId:deviceId});
+        metaLog({type:LOG_TYPE.VERBOSE, content:command, deviceId:deviceId});
         processingManager.process(params)
           .then((result) => {
             metaLog({type:LOG_TYPE.VERBOSE, content:'Result of the command to be processed: '+result, deviceId:deviceId});

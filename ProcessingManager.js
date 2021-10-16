@@ -6,7 +6,7 @@ const { JSONPath } = require ('jsonpath-plus');
 const io = require('socket.io-client');
 const rpc = require('json-rpc2');
 const lodash = require('lodash');
-const { parserXMLString, xmldom } = require("./metaController");
+var xml2js = require('xml2js');
 const WebSocket = require('ws');
 const got = require('got');
 const wol = require('wol');
@@ -80,45 +80,35 @@ class httprestProcessor {
   process(params) {
     return new Promise(function (resolve, reject) {
       try {
-        if (typeof (params.command) == 'string') { params.command = JSON.parse(params.command); }
-        if (params.command.verb == 'post') {
-          got.post(params.command.call, {json:params.command.message, responseType: 'json'})
-         .then((response) => {
+        if (typeof (params.command) == 'string') { params.command = JSON.parse(params.command); };
+        let myRestFunction;
+        if (params.command.verb == 'post') {myRestFunction = got.post};
+        if (params.command.verb == 'put') {myRestFunction = got.put};
+        if (params.command.verb == 'get') {myRestFunction = got};
+        myRestFunction(params.command.call, {json:params.command.message,headers:params.command.headers})
+        .then((response) => {
+          if ((response.headers["content-type"] && response.headers["content-type"] == "text/xml") || response.body.startsWith('<'))
+          {
+            xml2js.parseStringPromise(response.body)
+            .then((result) => {
+              metaLog({type:LOG_TYPE.VERBOSE, content:result});
+              resolve(result);
+            })
+            .catch((err) => {
+              metaLog({type:LOG_TYPE.ERROR, content:err});
+            })
+          }
+          else {
+            metaLog({type:LOG_TYPE.VERBOSE, content:response.headers});
+            metaLog({type:LOG_TYPE.VERBOSE, content:response.body});
             resolve(response.body);
-          })
-          .catch((err) => {
-            metaLog({type:LOG_TYPE.ERROR, content:'Post request didn\'t work : '});
+          }
+        })
+        .catch((err) => {
+            metaLog({type:LOG_TYPE.ERROR, content:'Request didn\'t work : '});
             metaLog({type:LOG_TYPE.ERROR, content:params});
             metaLog({type:LOG_TYPE.ERROR, content:err});
-            reject(err);
-          });
-        }
-        else if (params.command.verb == 'put') {
-          metaLog({type:LOG_TYPE.VERBOSE, content:'Put http request. Final address:'});
-          metaLog({type:LOG_TYPE.VERBOSE, content:params.command.call});
-          got.put(params.command.call, {json:params.command.message, responseType: 'json'})
-          .then((response) => {
-            resolve(response.body);
-          })
-          .catch((err) => {
-            metaLog({type:LOG_TYPE.ERROR, content:'Put request didn\'t work : '});
-            metaLog({type:LOG_TYPE.ERROR, content:params});
-            metaLog({type:LOG_TYPE.ERROR, content:err});
-            reject(err);
-          });
-        }
-        else if (params.command.verb == 'get') {
-          got(params.command.call)
-          .then(function (result) {
-            metaLog({type:LOG_TYPE.VERBOSE, content:'result of Request Get before query result, request size and content'});
-            metaLog({type:LOG_TYPE.VERBOSE, content:result.body.length});
-            metaLog({type:LOG_TYPE.VERBOSE, content:result.body});
-            resolve(result.body);
-          })
-          .catch((err) => {
-            reject(err);
-          });
-        }
+        });
       }
       catch (err) {
         metaLog({type:LOG_TYPE.ERROR, content:'Meta Error during the rest command processing'});
@@ -146,16 +136,50 @@ class httprestProcessor {
       let previousResult = '';
       clearInterval(params.listener.timer);
       params.listener.timer = setInterval(() => {
-        http(params.command)
-          .then(function (result) {
-            //if (result != previousResult) {
-              previousResult = result;
-              params._listenCallback(result, params.listener, deviceId);
-            //}
-            resolve('');
+        try {
+          if (typeof (params.command) == 'string') { params.command = JSON.parse(params.command); }
+          let myRestFunction;
+          if (params.command.verb == 'post') {myRestFunction = got.post};
+          if (params.command.verb == 'put') {myRestFunction = got.put};
+          if (params.command.verb == 'get') {myRestFunction = got};
+          metaLog({type:LOG_TYPE.VERBOSE, content:"Intenting rest call", deviceId});
+          metaLog({type:LOG_TYPE.VERBOSE, content:params.command, deviceId});
+          myRestFunction(params.command.call, {json:params.command.message,headers:params.command.headers})
+          .then((response) => {
+            if ((response.headers["content-type"] && response.headers["content-type"] == "text/xml") || response.body.startsWith('<'))
+            {
+              xml2js.parseStringPromise(response.body)
+              .then((result) => {
+                metaLog({type:LOG_TYPE.VERBOSE, content:result, deviceId});
+                if (result != previousResult) {
+                  previousResult = result;
+                  params._listenCallback(result, params.listener, deviceId);
+                }
+                resolve("");
+              })
+              .catch((err) => {
+                metaLog({type:LOG_TYPE.ERROR, content:err});
+              })
+            }
+            else {
+              if (response.body != previousResult) {
+                previousResult = response.body;
+                params._listenCallback(response.body, params.listener, deviceId);
+              }
+              resolve("");
+            }
           })
-          .catch((err) => { metaLog({type:LOG_TYPE.ERROR, content:err});
+          .catch((err) => {
+              metaLog({type:LOG_TYPE.ERROR, content:'Request didn\'t work : '});
+              metaLog({type:LOG_TYPE.ERROR, content:err});
+              resolve('');
           });
+        }
+        catch (err) {
+          metaLog({type:LOG_TYPE.ERROR, content:'Meta Error during the rest command processing'});
+          metaLog({type:LOG_TYPE.ERROR, content:err});
+          resolve('');
+        }
       }, (params.listener.pooltime ? params.listener.pooltime : 1000));
       if (params.listener.poolduration && (params.listener.poolduration != '')) {
         setTimeout(() => {
@@ -707,15 +731,21 @@ class httppostProcessor {
   }
   process(params) {
     return new Promise(function (resolve, reject) {
-      if (typeof (params.command) == 'string') { params.command = JSON.parse(params.command); }
-      if (params.command.call) {
-        http.post(params.command.call, params.command.message)
-          .then(function (result) {
-            resolve(result.data);
-          })
-          .catch((err) => {  metaLog({type:LOG_TYPE.ERROR, content:err});reject(err); });
+      try {
+        if (typeof (params.command) == 'string') { params.command = JSON.parse(params.command); }
+        if (params.command.call) {
+          http.post(params.command.call, params.command.message)
+            .then(function (result) {
+              resolve(result.data);
+            })
+            .catch((err) => {  metaLog({type:LOG_TYPE.ERROR, content:err});reject(err); });
+        }
+        else { reject('no post command provided or improper format'); }
       }
-      else { reject('no post command provided or improper format'); }
+      catch (err) {
+        metaLog({type:LOG_TYPE.ERROR, content:"Error during Post command processing : " + params.command.call + " - " + params.command.message});
+        metaLog({type:LOG_TYPE.ERROR, content:err});
+      }      
     });
   }
   query(params) {

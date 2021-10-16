@@ -1,6 +1,6 @@
 {
   "name": "meta",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": ".meta, neeo RAD platform",
   "main": "meta.js",
   "scripts": {
