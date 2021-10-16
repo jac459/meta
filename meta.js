@@ -111,11 +111,11 @@ function networkDiscovery() {
             if (myObjectMac && myObjectMac.data) {myMac = myObjectMac.data};
           }
         
-        if (localDevices.findIndex((device)=>{return (device.name == myName && device.short == myShortName && device.ip == myIP&& device.port == myPort &&device.mac == myMac)})<0) {
+        if (localDevices.findIndex((device)=>{return (device.name == myName && device.ip == myIP&& device.port == myPort &&device.mac == myMac)})<0) {
           if (myIP!=undefined && myIP.startsWith("192")) {
             find(myIP).then(device => {
               if (device) {myMac = device.mac;};
-              indport = localDevices.findIndex((device)=>{return (device.name == myName && device.short == myShortName && device.ip == myIP&&device.mac == myMac)});//avoid device with too many ports
+              indport = localDevices.findIndex((device)=>{return (device.name == myName && device.ip == myIP&&device.mac == myMac)});//avoid device with too many ports
               if (indport<0) {
                 if (myIP!=undefined || myMac!=undefined) {
                   hasChanged = true;
@@ -417,8 +417,8 @@ function getRegistrationCode(controller, credentials, driver, deviceId){
 
 function registerDevice(controller, driver, deviceId) {
   return new Promise(function (resolve, reject) {
-    controller.actionManager(DEFAULT, driver.register.registrationcommand.type, driver.register.registrationcommand.command, 
-                          driver.register.registrationcommand.queryresult, '', driver.register.registrationcommand.evalwrite)
+    controller.actionManager(DEFAULT, driver.register.command.type, driver.register.command.command, 
+                          driver.register.command.queryresult, '', driver.register.command.evalwrite)
     .then((result) => {
       controller.reInitVariablesValues(deviceId);
       controller.reInitConnectionsValues(deviceId);
@@ -579,9 +579,6 @@ function executeDriverCreation (driver, hubController, passedDeviceId) {
     
       //Registration
       if (driver.register) {
-        //need to test internal variable here.... same story than discovery my friend...
-//        prepareCommand(controller, driver.register.commandset, deviceId, 0).then(()=> {
-        
           theDevice.enableRegistration(
           {
             type: 'SECURITY_CODE',
@@ -592,7 +589,6 @@ function executeDriverCreation (driver, hubController, passedDeviceId) {
             register: (credentials) => getRegistrationCode(controller, credentials, driver, deviceId),
             isRegistered: () => {return new Promise(function (resolve, reject) {isDeviceRegistered(controller, driver, deviceId).then((res)=>{resolve(res)})})},
           })
-//      })
       }
 
       //DISCOVERY  

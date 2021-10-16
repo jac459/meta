@@ -49,12 +49,20 @@
       "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-core/main/pics/core.jpg"
     },
     {
-      "name": "naim",
+      "name": "Naim",
       "author": "JAC459",
       "description": "Control your naim device.",
       "version": 2,
       "driverLocation": "https://raw.githubusercontent.com/jac459/meta-naim/main/naim.json",
       "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-naim/main/naim.jpg"
+    },
+    {
+      "name": "Plex",
+      "author": "JAC459",
+      "description": "Control all your plex clients.",
+      "version": 1,
+      "driverLocation": "https://raw.githubusercontent.com/jac459/meta-plex/main/plex.json",
+      "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-plex/main/pics/plex-226049.jpg"
     },
     {
       "name": "Roon",

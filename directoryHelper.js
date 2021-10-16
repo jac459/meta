@@ -22,6 +22,7 @@ class directoryHelper {
     this.feederH = [];
     this.cacheList = [];
     this.actionId = undefined;
+    this.listOffset = 0;
     this.browseHistory = [];
     this.currentFeederIndex = 0;
     this.controller = controller;
@@ -62,7 +63,8 @@ class directoryHelper {
 
     this.fetchList = function (deviceId, params) { //browse management and delegation to feeders. to be refactored later>
       return new Promise(function (resolve, reject) {
-      metaLog({type:LOG_TYPE.INFO, content:'Fetch Parameters : ' + JSON.stringify(params), deviceId:deviceId});
+      metaLog({type:LOG_TYPE.VERBOSE, content:'Fetch Parameters : ' + JSON.stringify(params), deviceId:deviceId});
+      self.listOffset = params.offset;
       if (params.browseIdentifier != undefined && params.browseIdentifier != '') { //case were a directory was selected in the list
         //Take the good feeder:
         //Take the good commandset:
@@ -76,10 +78,13 @@ class directoryHelper {
         let commandSetIndex = params.browseIdentifier.split("$CommandSet=")[1];
         params.browseIdentifier = params.browseIdentifier.split("$CommandSet=")[0];
         if (self.cacheList[PastQueryId].action == undefined || self.cacheList[PastQueryId].action == "") {
-          //new july 2021
-          self.controller.evalWrite(self.feederH[self.currentFeederIndex].commandset[commandSetIndex].evalwrite, PastQueryValue, deviceId);
-          self.controller.evalDo(self.feederH[self.currentFeederIndex].commandset[commandSetIndex].evaldo, PastQueryValue, deviceId);
-         }
+          //new oct 2021
+          let tmpCommandSet = JSON.stringify(self.feederH[self.currentFeederIndex].commandset[commandSetIndex]);
+          tmpCommandSet = tmpCommandSet.replace(/\$ListIndex/g, PastQueryId);
+          tmpCommandSet = JSON.parse(tmpCommandSet);
+          self.controller.evalWrite(tmpCommandSet.evalwrite, PastQueryValue, deviceId);
+          self.controller.evalDo(tmpCommandSet.evaldo, PastQueryValue, deviceId);
+        }
         self.evalNext(deviceId, self.feederH[self.currentFeederIndex].commandset[commandSetIndex].evalnext, PastQueryValue, params.browseIdentifier);//assign the good value to know the feeder
       }
       else if (params.history != undefined && params.history.length>0 && params.offset==0 && self.previousOffset == 0) {//case where we browse backward
@@ -103,6 +108,8 @@ class directoryHelper {
         }
         else {self.browseHistory[params.history.length] = self.currentFeederIndex}
       }
+
+      self.actionId = undefined;          
 
       self.fetchCurrentList(deviceId, self.feederH[self.currentFeederIndex], params)
           .then((list) => {resolve(list);})
@@ -131,45 +138,59 @@ class directoryHelper {
               if (self.cacheList[i].itemtype == 'tile') {
                 let tiles = [];
                 tiles.push({
-                    thumbnailUri: self.cacheList[i].image,
-                    actionIdentifier: (self.cacheList[i].action ? self.cacheList[i].action + "$ListIndex=" + (i) : self.cacheList[i].action), //For support of index
+                    thumbnailUri: self.cacheList[i].image ? self.cacheList[i].image : "https://raw.githubusercontent.com/jac459/meta-core/main/pics/meta.jpg",
+                    actionIdentifier: self.cacheList[i].action, //For support of index
                     uiAction: self.cacheList[i].UI ? self.cacheList[i].UI : ''
                 })
                 if ((i+1 < self.cacheList.length) && (self.cacheList[i+1].itemtype == 'tile')) {
                   //test if the next item is also a tile to put on the right, if it is not the end of the list
                   i++
                   tiles.push({
-                    thumbnailUri: self.cacheList[i].image,
+                    thumbnailUri: self.cacheList[i].image ? self.cacheList[i].image : "https://raw.githubusercontent.com/jac459/meta-core/main/pics/meta.jpg",
                     actionIdentifier: self.cacheList[i].action,
-                    uiAction: self.cacheList[i].UI ? self.cacheList[i].UI : ''
+                    uiAction: self.cacheList[i].UI ? self.cacheList[i].UI : ((self.cacheList[i].action != '' || self.cacheList[i].action != undefined) ? '' : 'reload'),
                   });
                 }
                 neeoList.addListTiles(tiles);
               }
               else if (self.cacheList[i].itemtype == 'button') {
                 let buttonLine = [];
-                buttonLine.push({title:self.cacheList[i].name, uiAction:'reload',iconName:self.cacheList[i].image,inverse:self.cacheList[i].UI,actionIdentifier:(self.cacheList[i].action ? self.cacheList[i].action + "$ListIndex=" + (i) : self.cacheList[i].action)});
+                buttonLine.push({title:self.cacheList[i].name, uiAction:'reload',iconName:self.cacheList[i].image,inverse:self.cacheList[i].UI,actionIdentifier:self.cacheList[i].action});
                 if (self.cacheList[i+1] && self.cacheList[i+1].itemtype == "button" && self.cacheList[i+2] && self.cacheList[i+2].itemtype == "button") {
-                  buttonLine.push({title:self.cacheList[i+1].name, uiAction:'reload',iconName:self.cacheList[i+1].image,inverse:self.cacheList[i+1].UI,actionIdentifier:(self.cacheList[i+1].action ? self.cacheList[i+1].action + "$ListIndex=" + (i+1) : self.cacheList[i+1].action)});
-                  buttonLine.push({title:self.cacheList[i+2].name, uiAction:'reload',iconName:self.cacheList[i+2].image,inverse:self.cacheList[i+2].UI,actionIdentifier:(self.cacheList[i+2].action ? self.cacheList[i+2].action + "$ListIndex=" + (i+2) : self.cacheList[i+2].action)});
+                  buttonLine.push({title:self.cacheList[i+1].name, uiAction:'reload',iconName:self.cacheList[i+1].image,inverse:self.cacheList[i+1].UI,actionIdentifier:self.cacheList[i+1].action});
+                  buttonLine.push({title:self.cacheList[i+2].name, uiAction:'reload',iconName:self.cacheList[i+2].image,inverse:self.cacheList[i+2].UI,actionIdentifier:self.cacheList[i+2].action});
                   i=i+2;
                 }
                 if (self.cacheList[i+1] && self.cacheList[i+1].itemtype == "button") {
-                  buttonLine.push({title:self.cacheList[i+1].name, uiAction:'reload',iconName:self.cacheList[i+1].image,inverse:(self.cacheList[i+1].UI?self.cacheList[i+1].UI:false),actionIdentifier:(self.cacheList[i+1].action ? self.cacheList[i+1].action + "$ListIndex=" + (i+1) : self.cacheList[i+1].action)});
+                  buttonLine.push({title:self.cacheList[i+1].name, uiAction:'reload',iconName:self.cacheList[i+1].image,inverse:(self.cacheList[i+1].UI?self.cacheList[i+1].UI:false),actionIdentifier:self.cacheList[i+1].action});
                   i=i+1;
                 }
                 neeoList.addListButtons(buttonLine);
              }
-              else {
-                 neeoList.addListItem({
+             else if (self.cacheList[i].itemtype == 'info') {
+//              let UI = JSON.parse(self.cacheList[i].UI);
+//              metaLog({type:LOG_TYPE.ERROR, content:self.cacheList[i], deviceId:deviceId});
+//              metaLog({type:LOG_TYPE.ERROR, content:UI.affirmative, deviceId:deviceId});
+//              metaLog({type:LOG_TYPE.ERROR, content:UI.negative, deviceId:deviceId});
+
+              neeoList.addListInfoItem({
                   title: self.cacheList[i].name,
-                  label: self.cacheList[i].label,
-                  thumbnailUri: self.cacheList[i].image,
-                  actionIdentifier: (self.cacheList[i].action ? self.cacheList[i].action + "$ListIndex=" + (i) : self.cacheList[i].action), //For support of index
-                  browseIdentifier: self.cacheList[i].browse,
-                  uiAction: self.cacheList[i].UI ? self.cacheList[i].UI : ((self.cacheList[i].action != '' || self.cacheList[i].action != undefined) ? '' : 'reload'),
+                  text: self.cacheList[i].label,
+                  //affirmativeButtonText:  "UI.affirmative",
+                  //negativeButtonText: UI.negative ? UI.negative : undefined,
+                  //actionIdentifier: self.cacheList[i].action,
                 });
               }
+              else {
+                neeoList.addListItem({
+                title: self.cacheList[i].name,
+                label: self.cacheList[i].label,
+                thumbnailUri: self.cacheList[i].image,
+                actionIdentifier: self.cacheList[i].action, //For support of index
+                browseIdentifier: self.cacheList[i].browse,
+                uiAction: self.cacheList[i].UI ? self.cacheList[i].UI : ((self.cacheList[i].action != '' || self.cacheList[i].action != undefined) ? '' : 'reload'),
+              });
+             }
             }
             resolve(neeoList);
           })
@@ -194,6 +215,7 @@ class directoryHelper {
             //self.cacheList, allconfigs, params, indentCommand
             let commandSet = allconfigs.commandset[indentCommand];
             let processedCommand = self.controller.vault.readVariables(commandSet.command, deviceId);
+            if (processedCommand) {processedCommand = processedCommand.replace(/\$ListOffset/g, self.listOffset);}
             processedCommand = self.controller.assignTo(BROWSEID, processedCommand, params.browseIdentifier);
             metaLog({type:LOG_TYPE.VERBOSE, content:'Final processed Command:', deviceId:deviceId});
             metaLog({type:LOG_TYPE.VERBOSE, content:processedCommand, deviceId:deviceId});
@@ -223,8 +245,8 @@ class directoryHelper {
                          action = valAction+"$CommandSet="+indentCommand+"$PastQueryId=" + (self.cacheList.length);
                       }
                     }
-                    //new
-                    self.cacheList.push({
+                    //new Oct 2021
+                    let cacheListItem = {
                       'myPastQuery' : ((typeof(oneItemResult) == 'string')?oneItemResult:JSON.stringify(oneItemResult)),
                       'name' : self.controller.assignTo(RESULT, rName, oneItemResult),
                       'image' : self.controller.assignTo(RESULT, rImage, oneItemResult),
@@ -233,8 +255,11 @@ class directoryHelper {
                       'action' : action,
                       'UI' : rUI ? self.controller.assignTo(RESULT, rUI, oneItemResult):"",
                       'browse' : "$CommandSet="+indentCommand+"$PastQueryId=" + (self.cacheList.length)
-                    }
-                    );
+                    };
+                    cacheListItem = JSON.stringify(cacheListItem);
+                    cacheListItem = cacheListItem.replace(/\$ListIndex/g, self.cacheList.length);
+                    cacheListItem = JSON.parse(cacheListItem);
+                    self.cacheList.push(cacheListItem);
                     metaLog({type:LOG_TYPE.VERBOSE, content:self.cacheList.length, deviceId:deviceId});
 
                   });
@@ -257,7 +282,6 @@ class directoryHelper {
 
     this.handleAction = function (deviceId, params) {
       return new Promise(function (resolve, reject) {
-        metaLog({type:LOG_TYPE.VERBOSE, content:"ACTION : " + JSON.stringify(params), deviceId:deviceId});
         self.handleCurrentAction(deviceId, params)
           .then((action) => { resolve(action); })
           .catch((err) => { reject(err); });
@@ -268,41 +292,42 @@ class directoryHelper {
       return new Promise(function (resolve, reject) {
           
         //here, the action identifier is the result.  
-        let ListIndex = params.actionIdentifier.split("$ListIndex=")[1];
-        self.actionId = ListIndex;
-        params.actionIdentifier = params.actionIdentifier.split("$ListIndex=")[0];
         let PastQueryId = params.actionIdentifier.split("$PastQueryId=")[1];
+        self.actionId = PastQueryId;
         let PastQueryValue = self.cacheList[PastQueryId].myPastQuery;
-        metaLog({type:LOG_TYPE.VERBOSE, content:PastQueryValue, deviceId:deviceId});
         //MQTT Logging
-        self.controller.commandProcessor("{\"topic\":\"" + settings.mqtt_topic + self.controller.name + "/" + deviceId + "/directory/" + self.name + "\",\"message\":\"" + ListIndex + "\", \"options\":\"{\\\"retain\\\":true}\"}", MQTT, deviceId)
+        self.controller.commandProcessor("{\"topic\":\"" + settings.mqtt_topic + self.controller.name + "/" + deviceId + "/directory/" + self.name + "\",\"message\":\"" + PastQueryId + "\", \"options\":\"{\\\"retain\\\":true}\"}", MQTT, deviceId)
       
         params.actionIdentifier = params.actionIdentifier.split("$PastQueryId=")[0];
         let commandSetIndex = params.actionIdentifier.split("$CommandSet=")[1];
         params.actionIdentifier = params.actionIdentifier.split("$CommandSet=")[0];
         if (self.feederH[self.currentFeederIndex].commandset[commandSetIndex]) {
-          self.controller.evalWrite(self.feederH[self.currentFeederIndex].commandset[commandSetIndex].evalwrite, PastQueryValue, deviceId);
+          let tmpCommandSet = JSON.stringify(self.feederH[self.currentFeederIndex].commandset[commandSetIndex]);
+          tmpCommandSet = tmpCommandSet.replace(/\$ListIndex/g, PastQueryId);
+          tmpCommandSet = JSON.parse(tmpCommandSet);
+          self.controller.evalWrite(tmpCommandSet.evalwrite, PastQueryValue, deviceId);
         }
         //finding the feeder which is actually an action feeder
         let ActionIndex = self.feederH.findIndex((feed) => {return (feed.name == params.actionIdentifier)});
-        
+
         //Processing all commandset recursively
         if (ActionIndex>=0){
-          resolve(self.executeAllActions(deviceId, PastQueryValue, ListIndex, self.feederH[ActionIndex].commandset, 0));
+
+          let tmpActionCommandSet = JSON.stringify(self.feederH[ActionIndex].commandset);
+          tmpActionCommandSet = tmpActionCommandSet.replace(/\$ListIndex/g, PastQueryId);
+          tmpActionCommandSet = JSON.parse(tmpActionCommandSet);
+          resolve(self.executeAllActions(deviceId, PastQueryValue, tmpActionCommandSet, 0));
         }
         else {resolve();}
       });
     };
 
-    this.executeAllActions = function (deviceId, PastQueryValue, ListIndex, allCommandSet, indexCommand) {
+    this.executeAllActions = function (deviceId, PastQueryValue, allCommandSet, indexCommand) {
       return new Promise(function (resolve, reject) {
         if (indexCommand < allCommandSet.length){
           let commandSet = allCommandSet[indexCommand]; 
-          self.controller.evalWrite(commandSet.evalwrite, PastQueryValue, deviceId);
-          self.controller.evalDo(commandSet.evaldo, PastQueryValue, deviceId); 
           let processedCommand = commandSet.command;
           processedCommand = self.controller.vault.readVariables(processedCommand, deviceId);
-          processedCommand = processedCommand.replace(/\$ListIndex/g, ListIndex); //in order to interpret ListIndex (can't be in the vault)
           processedCommand = self.controller.assignTo(RESULT, processedCommand, PastQueryValue);
           metaLog({type:LOG_TYPE.VERBOSE, content:processedCommand, deviceId:deviceId});
           self.controller.commandProcessor(processedCommand, commandSet.type, deviceId)
@@ -310,7 +335,11 @@ class directoryHelper {
           
               self.controller.queryProcessor(resultC, commandSet.queryresult, commandSet.type, deviceId)
               .then ((result) => {
-                resolve(self.executeAllActions(deviceId, result, ListIndex, allCommandSet, indexCommand+1))
+
+                self.controller.evalWrite(commandSet.evalwrite, result, deviceId);
+                self.controller.evalDo(commandSet.evaldo, result, deviceId); 
+
+                resolve(self.executeAllActions(deviceId, result, allCommandSet, indexCommand+1))
               })
               .catch ((err) => {
                 metaLog({type:LOG_TYPE.ERROR, content:"Error while parsing the command result.", deviceId:deviceId});

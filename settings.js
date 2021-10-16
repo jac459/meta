@@ -5,7 +5,7 @@ var settings =
   'LogSeverity' : "ERROR",
   'driverPrefix' : '.meta2 ', 
   'runtimeName' : '.meta',
-  'defaultPort' : '4015',
+  'defaultPort' : '4016',
   'mqttClientId' : 'meta',
   'activeLibrary' : './active'
 }
