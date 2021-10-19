@@ -1,6 +1,6 @@
 {
   "name": "meta",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": ".meta, neeo RAD platform",
   "main": "meta.js",
   "scripts": {
@@ -32,6 +32,7 @@
     "socket.io-client": "2.4.0",
     "wol": "^1.0.7",
     "ws": "^7.5.0",
+    "xml2js": "^0.4.23",
     "xpath": "0.0.32"
   }
 }
