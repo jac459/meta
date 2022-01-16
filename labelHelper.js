@@ -1,4 +1,3 @@
-
 //LOGGING SETUP AND WRAPPING
 //Disable the NEEO library console warning.
 const { metaMessage, LOG_TYPE } = require("./metaMessage");
@@ -8,6 +7,10 @@ function metaLog(message) {
   let myMessage = {...initMessage, ...message}
   return metaMessage (myMessage);
 } 
+
+const MQTT = 'mqtt';
+const path = require('path');
+const settings = require(path.join(__dirname,'settings'));
 
 class labelHelper {
   constructor(deviceId, name, variableListened, controller, actionVariableListened) {
@@ -27,9 +30,11 @@ class labelHelper {
       return new Promise(function (resolve, reject) {
         if (self.actionValue != theValue) {
           self.actionValue = theValue;
+          self.controller.commandProcessor("{\"topic\":\"" + settings.mqtt_topic + self.controller.name + "/" + deviceId + "/label/" + self.name + "\",\"message\":\"" + theValue + "\", \"options\":\"{\\\"retain\\\":true}\"}", MQTT, deviceId)
           self.controller.sendComponentUpdate({ uniqueDeviceId: deviceId, component: self.name, value: theValue })
           .catch((err) => {metaLog({type:LOG_TYPE.ERROR, content:err, deviceId:deviceId})});
           setTimeout(() => {
+          self.controller.commandProcessor("{\"topic\":\"" + settings.mqtt_topic + self.controller.name + "/" + deviceId + "/label/" + self.name + "\",\"message\":\"" + theValue + "\", \"options\":\"{\\\"retain\\\":true}\"}", MQTT, deviceId)
           self.controller.sendComponentUpdate({ uniqueDeviceId: deviceId, component: self.name, value: self.value })
           .catch((err) => {metaLog({type:LOG_TYPE.ERROR, content:err, deviceId:deviceId})});
           }, 2000)
@@ -42,6 +47,7 @@ class labelHelper {
       return new Promise(function (resolve, reject) {
         if (self.value != theValue) {
           self.value = theValue;
+          self.controller.commandProcessor("{\"topic\":\"" + settings.mqtt_topic + self.controller.name + "/" + deviceId + "/label/" + self.name + "\",\"message\":\"" + theValue + "\", \"options\":\"{\\\"retain\\\":true}\"}", MQTT, deviceId)       
           self.controller.sendComponentUpdate({ uniqueDeviceId: deviceId, component: self.name, value: theValue })
           .catch((err) => {metaLog({type:LOG_TYPE.ERROR, content:err, deviceId:deviceId})});
         }
