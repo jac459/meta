@@ -25,6 +25,14 @@
       "iconLocation":   "https://raw.githubusercontent.com/stonie2oo4/meta-denonAVR/main/Icons/DenonAVR.jpg"
     },    
     {
+      "name": "enigma2",
+      "author": "stonie2oo4",
+      "description": "Control of your enigma2.",
+      "version": 2,
+      "driverLocation": "https://raw.githubusercontent.com/stonie2oo4/meta-enigma2/main/enigma2.json",
+      "iconLocation":   "https://raw.githubusercontent.com/stonie2oo4/meta-enigma2/main/Icons/enigma2.jpg"
+    },   
+    {
       "name": "Hue Bulbs",
       "author": "JAC459",
       "description": "Control your individual bulbs with colors.",
