@@ -862,47 +862,49 @@ function runNeeo () {
     
 
 function enableMQTT (cont, deviceId) {
-  mqttClient.subscribe(settings.mqtt_topic + cont.name + "/#", () => {});
-  mqttClient.on('message', function (topic, value) {
-      try {
+  let locmqttClient = mqtt.connect('mqtt://' + settings.mqtt, {clientId:settings.mqtt_topic + cont.name + " - " + deviceId}); // Always connect to the local mqtt broker
 
-        let theTopic = topic.split("/");
-        if (theTopic.length == 6 && theTopic[5] == "set") {
+  locmqttClient.subscribe(settings.mqtt_topic + cont.name + "/" + deviceId + "/#", () => {
+    locmqttClient.on('message', function (topic, value) {
+        try {
+          let theTopic = topic.split("/");
+          if (theTopic.length == 6 && theTopic[5] == "set") {
 
-          if (theTopic[3] == "button") {
-            cont.onButtonPressed(theTopic[4], theTopic[2]);
+            if (theTopic[3] == "button") {
+              cont.onButtonPressed(theTopic[4], theTopic[2]);
+            }
+            else if (theTopic[3] == "slider") {
+              let sliI = cont.sliderH.findIndex((sli)=>{return sli.name == theTopic[4]});
+              if (sliI>=0){
+                cont.sliderH[sliI].set(theTopic[2], value)
+              }   
+            }
+            else if (theTopic[3] == "switch") {
+              let sliI = cont.switchH.findIndex((sli)=>{return sli.name == theTopic[4]});
+              if (sliI>=0){
+                cont.switchH[sliI].set(theTopic[2], value)
+              }   
+            }
+            else if (theTopic[3] == "image") {
+              let imaI = cont.imageH.findIndex((ima)=>{return ima.name == theTopic[4]});
+              if (imaI>=0){
+                cont.imageH[imaI].set(theTopic[2], value)
+              }   
+            }
+            else if (theTopic[3] == "label") {
+              let labI = cont.labelH.findIndex((lab)=>{return lab.name == theTopic[4]});
+              if (labI>=0){
+                cont.labelH[labI].set(theTopic[2], value)
+              }   
+            }
           }
-          else if (theTopic[3] == "slider") {
-            let sliI = cont.sliderH.findIndex((sli)=>{return sli.name == theTopic[4]});
-            if (sliI>=0){
-              cont.sliderH[sliI].set(theTopic[2], value)
-            }   
-          }
-          else if (theTopic[3] == "switch") {
-            let sliI = cont.switchH.findIndex((sli)=>{return sli.name == theTopic[4]});
-            if (sliI>=0){
-              cont.switchH[sliI].set(theTopic[2], value)
-            }   
-          }
-          else if (theTopic[3] == "image") {
-            let imaI = cont.imageH.findIndex((ima)=>{return ima.name == theTopic[4]});
-            if (imaI>=0){
-              cont.imageH[imaI].set(theTopic[2], value)
-            }   
-          }
-          else if (theTopic[3] == "label") {
-            let labI = cont.labelH.findIndex((lab)=>{return lab.name == theTopic[4]});
-            if (labI>=0){
-              cont.labelH[labI].set(theTopic[2], value)
-            }   
-          }
-         }
-      }
-      catch (err) {
-        metaLog({type:LOG_TYPE.ERROR, content:'Parsing incomming message on: '+settings.mqtt_topic + cont.name + "/command"});
-        metaLog({type:LOG_TYPE.ERROR, content:err});
-      }
-  })
+        }
+        catch (err) {
+          metaLog({type:LOG_TYPE.ERROR, content:'Parsing incomming message on: '+settings.mqtt_topic + cont.name + "/command"});
+          metaLog({type:LOG_TYPE.ERROR, content:err});
+        }
+    })
+  });
 }
 
 //MAIN
