@@ -17,9 +17,9 @@
       "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-broadlink/main/pics/BroadlinkTV.jpg"
     },
     {
-      "name": "Denon AVR",
+      "name": "Denon + Marantz AVR",
       "author": "stonie2oo4",
-      "description": "Control of your Denon AVR.",
+      "description": "Control of your Denon + Marantz AVR.",
       "version": 2,
       "driverLocation": "https://raw.githubusercontent.com/stonie2oo4/meta-denonAVR/main/DenonAVR.json",
       "iconLocation":   "https://raw.githubusercontent.com/stonie2oo4/meta-denonAVR/main/Icons/DenonAVR.jpg"
