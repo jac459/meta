@@ -39,6 +39,7 @@ function metaLog(message) {
 
 function networkDiscovery() {
   try {
+
     fs.readFile(discoveryBuffer, (err, data) => {
       if (err) { 
         metaLog({type:LOG_TYPE.INFO, content:'No discovery file, starting to discover now.'});
@@ -53,6 +54,7 @@ function networkDiscovery() {
 
       //Unleaching discovery
       mdns.on('response', function(response) {
+ 
         let myObjectPTR, myObjectIP, myObjectMac;
         let hasChanged = false;
         let myName, myShortName, myIP, myMac, myPort = undefined
@@ -524,8 +526,8 @@ function executeDriverCreation (driver, hubController, passedDeviceId) {
       let deviceId = passedDeviceId ? passedDeviceId : DEFAULT; //to add the deviceId of the real discovered device in the Helpers
 
       let controller = createController(hubController, driver);
-      metaLog({deviceId: deviceId, type:LOG_TYPE.INFO, content:'creating the driver: ' + deviceId + " with controller: " + controller.name});
-
+      metaLog({deviceId: deviceId, type:LOG_TYPE.INFO, content:'creating the driver: ' + deviceId + " - " + driver.name + " - " + driver.version + " - " + driver.manufacturer + " with controller: " + controller.name});
+ 
       //TODO check if this is still usefull
       //if (hubController) {controller.assignDiscoverHubController(hubController)}; //if the device is a discovered device.
       const theDevice = neeoapi.buildDevice(settings.driverPrefix + driver.name) 

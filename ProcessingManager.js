@@ -144,14 +144,21 @@ class httprestProcessor {
       clearInterval(params.listener.timer);
       params.listener.timer = setInterval(() => {
         try {
-          if (typeof (params.command) == 'string') { params.command = JSON.parse(params.command); }
+          if (typeof (params.command) === 'string') { params.command = JSON.parse(params.command); }
           let myRestFunction;
           if (params.command.verb == 'post') {myRestFunction = got.post};
           if (params.command.verb == 'put') {myRestFunction = got.put};
           if (params.command.verb == 'get') {myRestFunction = got};
           metaLog({type:LOG_TYPE.VERBOSE, content:"Intenting rest call", deviceId});
           metaLog({type:LOG_TYPE.VERBOSE, content:params.command, deviceId});
-          myRestFunction(params.command.call, {json:params.command.message,headers:params.command.headers})
+          let param;
+          if (typeof params.command.message === 'string' && params.command.message.startsWith("<")) {
+            param = {body:params.command.message,headers:params.command.headers};
+          } else
+          {
+            param = {json:params.command.message,headers:params.command.headers};
+          }
+          myRestFunction(params.command.call, param)
           .then((response) => {
             if ((response.headers["content-type"] && response.headers["content-type"] == "text/xml") || response.body.startsWith('<'))
             {
