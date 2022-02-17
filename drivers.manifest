@@ -89,6 +89,30 @@
       "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-roon/main/pics/roon.jpg"
     },
     {
+      "name": "Shelly 1 / 1PM / 1L",
+      "author": "vistalba",
+      "description": "Control your Shelly 1 / 1PM / 1L.",
+      "version": 2,
+      "driverLocation": "https://raw.githubusercontent.com/vistalba/meta-shelly-driver/main/shelly-shsw-1-pm-l.json",
+      "iconLocation":   "https://raw.githubusercontent.com/vistalba/meta-shelly-driver/main/icons/shelly.jpg"
+    },
+    {
+      "name": "Shelly Dimmer 1 / Dimmer 2",
+      "author": "vistalba",
+      "description": "Control your Shelly Dimmer 1 / Dimmer 2.",
+      "version": 2,
+      "driverLocation": "https://raw.githubusercontent.com/vistalba/meta-shelly-driver/main/shelly-shdm.json",
+      "iconLocation":   "https://raw.githubusercontent.com/vistalba/meta-shelly-driver/main/icons/shelly.jpg"
+    },
+    {
+      "name": "Shelly 2.5 (Roller Shutter mode)",
+      "author": "vistalba",
+      "description": "Control your Shelly 2.5 (Roller Shutter mode).",
+      "version": 2,
+      "driverLocation": "https://raw.githubusercontent.com/vistalba/meta-shelly-driver/main/shelly-shsw-25-roller.json",
+      "iconLocation":   "https://raw.githubusercontent.com/vistalba/meta-shelly-driver/main/icons/shelly.jpg"
+    },  
+    {
       "name": "Volumio",
       "author": "JAC459",
       "description": "Advanced Control of Volumio through socketIO.",
