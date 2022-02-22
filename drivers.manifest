@@ -111,6 +111,14 @@
       "version": 2,
       "driverLocation": "https://raw.githubusercontent.com/vistalba/meta-shelly-driver/main/shelly-shsw-25-roller.json",
       "iconLocation":   "https://raw.githubusercontent.com/vistalba/meta-shelly-driver/main/icons/shelly.jpg"
+    },
+    {
+      "name": "Sony Bravia TV",
+      "author": "Nelus",
+      "description": "Control your Sony Bravia TV.",
+      "version": 2,
+      "driverLocation": "https://raw.githubusercontent.com/Nelus82/meta-sonybravia-driver/main/sonybravia.json",
+      "iconLocation":   "https://raw.githubusercontent.com/Nelus82/meta-sonybravia-driver/main/icon/bravia.jpg"
     },  
     {
       "name": "Volumio",
