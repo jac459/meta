@@ -117,8 +117,8 @@
       "author": "Nelus",
       "description": "Control your Sony Bravia TV.",
       "version": 2,
-      "driverLocation": "https://raw.githubusercontent.com/Nelus82/meta-sonybravia-driver/main/sonybravia.json",
-      "iconLocation":   "https://raw.githubusercontent.com/Nelus82/meta-sonybravia-driver/main/icon/bravia.jpg"
+      "driverLocation": "https://raw.githubusercontent.com/jac459/meta-sonybravia/main/sonybravia.json",
+      "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-sonybravia/main/icon/bravia.jpg"
     },  
     {
       "name": "Volumio",
