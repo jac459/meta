@@ -8,8 +8,9 @@ sudo apt-get upgrade
 echo "*** STEP 1 - Install meta's best friend : node.js ***"
 curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
 sudo apt install -y nodejs
-echo "*** STEP 2 - Install node.js best friend: npm (friends of our friends are our friends) ***"
+echo "*** STEP 2 - Install node.js best friend: npm (friends of our friends are our friends) and git ***"
 sudo apt install -y npm
+sudo apt install git
 echo "*** STEP 3 - Make your Raspberry a communication Champion with mosquitto, the best MQTT broker to communicate with your devices and hubs ***"
 sudo apt install -y mosquitto
 sudo systemctl stop mosquitto.service
