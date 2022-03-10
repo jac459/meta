@@ -32,4 +32,6 @@ pm2 start node-red
 pm2 start meta.js
 pm2 save
 cd ..
-
+echo "*** STEP 7 - Creating the startup scripts, you should see the meta in your neeo now ***"
+sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u pi --hp /home/pi
+echo "*** STEP 8 - The command that just ran is highly dependant of your environment (should be raspberry with pi user name), if you have an error, just type pm2 startup in your command line and follow the instructions. This will allow meta to run at startup. ***"
