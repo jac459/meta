@@ -100,7 +100,7 @@ Now that you have your IP address, go to PUTTY (if on windows) and type the IP a
 A new window will appears, in the user/password, type pi (as user) and raspberry (as password). You can change later.
 You know have access to your raspberry. The window you are seeing now is the one of your raspberry, not the computer you are looking at (magic).
 
-##### A.2.4 Step 3 - Setup the raspberry
+##### B.2.4 Step 3 - Setup the raspberry
 Use this command to start a script that will install the meta in your system (raspberry PI):
 ```
 bash <(wget -qO- https://raw.githubusercontent.com/jac459/meta/Release/installMeta.sh)
@@ -111,6 +111,20 @@ Hence this is done, just push the ENTER button.
 Now your rapsberry is being configured. It will take a good 20 minutes. You will have to answer yes at some questions (just press y and ENTER) so don't stay to far.
 Hence the script is done, you are done.
 You can go to neeo and search a new device. You should find the meta-core driver.
+
+##### B.2.5 - How to update meta
+Meta has a growing set of features and needs be updated to gain access to the most recent features and bug fixes.
+
+It is recommended to use [metaCore](https://github.com/jac459/meta-core#update-meta) to update meta. In metaCore go to: Global Settings > update meta
+
+More advanced users can run the same command manually in a command line. First browse to the folder of meta. The default (using the above installMeta.sh) is:
+```
+cd meta
+```
+Now run the following command to start a script that will update the meta in your system:
+```
+bash <(wget -qO- https://raw.githubusercontent.com/jac459/meta/Release/update.sh)
+```
 
 ### B.3 If you are a Raspberry/Linux black belt, a few infos:
 - The meta can be installed like any node.js program by taking the files and typing "npm install".
