@@ -16,5 +16,5 @@ wget https://raw.githubusercontent.com/jac459/meta/Release/sensorHelper.js -O se
 wget https://raw.githubusercontent.com/jac459/meta/Release/sliderHelper.js -O sliderHelper.js
 wget https://raw.githubusercontent.com/jac459/meta/Release/switchHelper.js -O switchHelper.js
 wget https://raw.githubusercontent.com/jac459/meta/Release/variablesVault.js -O variablesVault.js
-wget https://raw.githubusercontent.com/jac459/meta-core/main/metaCore.json -O ~/meta/active/metaCore.json
+wget https://raw.githubusercontent.com/jac459/meta-core/main/metaCore.json -O ./active/metaCore.json
 npm install
