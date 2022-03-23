@@ -68,7 +68,7 @@
       "name": "meta-core",
       "author": "JAC459",
       "description": "Manage your meta Platform from the NEEO Remote. | Readme: github.com/jac459/meta-core",
-      "version": 3,
+      "version": 4,
       "driverLocation": "https://raw.githubusercontent.com/jac459/meta-core/main/metaCore.json",
       "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-core/main/pics/core.jpg"
     },
