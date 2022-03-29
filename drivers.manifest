@@ -84,7 +84,7 @@
       "name": "Plex",
       "author": "JAC459",
       "description": "Control all your plex clients. | Readme: github.com/jac459/meta-plex",
-      "version": 1,
+      "version": 2,
       "driverLocation": "https://raw.githubusercontent.com/jac459/meta-plex/main/plex.json",
       "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-plex/main/pics/plex-226049.jpg"
     },
