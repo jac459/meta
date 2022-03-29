@@ -1,57 +1,81 @@
 {
   "drivers": [
+      {
+      "name": "BLERC",
+      "author": "Nelus",
+      "description": "Control Devices via simulated Bluetooth Keyboard (e.g. Nvidia Shield). Additional Hardware (ESP32) needed! | Readme: github.com/jac459/Meta-Blerc",
+      "version": 1,
+      "driverLocation": "https://raw.githubusercontent.com/jac459/Meta-Blerc/main/blerc.json",
+      "iconLocation":   "https://raw.githubusercontent.com/jac459/Meta-Blerc/main/icon/blerc.jpg"
+    },
     {
       "name": "Broadlink AC",
       "author": "JAC459",
-      "description": "Control your Air Con through IR blaster.",
-      "version": 2,
+      "description": "Control your Air Con through IR blaster. | Readme: github.com/jac459/meta-broadlink",
+      "version": 4,
       "driverLocation": "https://raw.githubusercontent.com/jac459/meta-broadlink/main/BroadlinkAC.json",
       "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-broadlink/main/pics/BroadlinkAC.jpg"
     },  
     {
       "name": "Broadlink TV",
       "author": "JAC459",
-      "description": "Map all TV controls to IR blaster.",
-      "version": 2,
+      "description": "Map all TV controls to IR blaster. | Readme: github.com/jac459/meta-broadlink",
+      "version": 18,
       "driverLocation": "https://raw.githubusercontent.com/jac459/meta-broadlink/main/BroadlinkTV.json",
       "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-broadlink/main/pics/BroadlinkTV.jpg"
     },
     {
+      "name": "Denon + Marantz AVR",
+      "author": "stonie2oo4",
+      "description": "Control of your Denon + Marantz AVR. | Readme: github.com/jac459/meta-denonAVR",
+      "version": 9,
+      "driverLocation": "https://raw.githubusercontent.com/jac459/meta-denonAVR/main/DenonAVR.json",
+      "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-denonAVR/main/Icons/DenonAVR.jpg"
+    },    
+    {
+      "name": "enigma2",
+      "author": "stonie2oo4",
+      "description": "Control of your enigma2. | Readme: github.com/stonie2oo4/meta-enigma2",
+      "version": 7,
+      "driverLocation": "https://raw.githubusercontent.com/stonie2oo4/meta-enigma2/main/enigma2.json",
+      "iconLocation":   "https://raw.githubusercontent.com/stonie2oo4/meta-enigma2/main/Icons/enigma2.jpg"
+    },   
+    {
       "name": "Hue Bulbs",
       "author": "JAC459",
-      "description": "Control your individual bulbs with colors.",
-      "version": 2,
+      "description": "Control your individual bulbs with colors. | Readme: github.com/jac459/meta-hue",
+      "version": 20,
       "driverLocation": "https://raw.githubusercontent.com/jac459/meta-hue/main/philipsHue.json",
       "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-hue/main/pics/philipsHue.jpg"
     },    
     {
       "name": "Hue Groups",
       "author": "JAC459",
-      "description": "Control your grouped bulbs with colors.",
-      "version": 2,
+      "description": "Control your grouped bulbs with colors. | Readme: github.com/jac459/meta-hue",
+      "version": 20,
       "driverLocation": "https://raw.githubusercontent.com/jac459/meta-hue/main/philipsHueGroup.json",
       "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-hue/main/pics/philipsHue.jpg"
     },    
     {
       "name": "Kodi",
       "author": "TonO",
-      "description": "Full Kodi control",
-      "version": 2,
-      "driverLocation": "https://raw.githubusercontent.com/Ton-O/meta-kodi/main/Meta%20custom%20driver/KODI.json",
+      "description": "Full Kodi control. | Readme: github.com/jac459/meta-kodi",
+      "version": 25,
+      "driverLocation": "https://raw.githubusercontent.com/jac459/meta-kodi/main/Meta%20custom%20driver/KODI.json",
       "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-kodi/main/Icons/kodi-logo.jpg"
     },
     {
       "name": "meta-core",
       "author": "JAC459",
-      "description": "Control your meta from the remote.",
-      "version": 2,
+      "description": "Manage your meta Platform from the NEEO Remote. | Readme: github.com/jac459/meta-core",
+      "version": 4,
       "driverLocation": "https://raw.githubusercontent.com/jac459/meta-core/main/metaCore.json",
       "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-core/main/pics/core.jpg"
     },
     {
       "name": "Naim",
       "author": "JAC459",
-      "description": "Control your naim device.",
+      "description": "Control your naim device. | Readme: github.com/jac459/meta-naim",
       "version": 2,
       "driverLocation": "https://raw.githubusercontent.com/jac459/meta-naim/main/naim.json",
       "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-naim/main/naim.jpg"
@@ -59,48 +83,80 @@
     {
       "name": "Plex",
       "author": "JAC459",
-      "description": "Control all your plex clients.",
-      "version": 1,
+      "description": "Control all your plex clients. | Readme: github.com/jac459/meta-plex",
+      "version": 2,
       "driverLocation": "https://raw.githubusercontent.com/jac459/meta-plex/main/plex.json",
       "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-plex/main/pics/plex-226049.jpg"
     },
     {
       "name": "Roon",
       "author": "JAC459",
-      "description": "Advanced Control of Roon through node-red.",
-      "version": 2,
+      "description": "Advanced Control of Roon through node-red. | Readme: github.com/jac459/meta-roon",
+      "version": 16,
       "driverLocation": "https://raw.githubusercontent.com/jac459/meta-roon/main/roon.json",
       "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-roon/main/pics/roon.jpg"
     },
     {
+      "name": "Shelly 1 / 1PM / 1L",
+      "author": "vistalba",
+      "description": "Control your Shelly 1 / 1PM / 1L. | Readme: github.com/vistalba/meta-shelly-driver",
+      "version": 1,
+      "driverLocation": "https://raw.githubusercontent.com/vistalba/meta-shelly-driver/main/shelly-shsw-1-pm-l.json",
+      "iconLocation":   "https://raw.githubusercontent.com/vistalba/meta-shelly-driver/main/icons/shelly.jpg"
+    },
+    {
+      "name": "Shelly Dimmer 1 / Dimmer 2",
+      "author": "vistalba",
+      "description": "Control your Shelly Dimmer 1 / Dimmer 2. | Readme: github.com/vistalba/meta-shelly-driver",
+      "version": 1,
+      "driverLocation": "https://raw.githubusercontent.com/vistalba/meta-shelly-driver/main/shelly-shdm.json",
+      "iconLocation":   "https://raw.githubusercontent.com/vistalba/meta-shelly-driver/main/icons/shelly.jpg"
+    },
+    {
+      "name": "Shelly 2.5 (Roller Shutter mode)",
+      "author": "vistalba",
+      "description": "Control your Shelly 2.5 (Roller Shutter mode). | Readme: github.com/vistalba/meta-shelly-driver",
+      "version": 1,
+      "driverLocation": "https://raw.githubusercontent.com/vistalba/meta-shelly-driver/main/shelly-shsw-25-roller.json",
+      "iconLocation":   "https://raw.githubusercontent.com/vistalba/meta-shelly-driver/main/icons/shelly.jpg"
+    },
+    {
+      "name": "Sony Bravia TV",
+      "author": "Nelus",
+      "description": "Control your Sony Bravia TV. | Readme: github.com/jac459/meta-sonybravia",
+      "version": 1,
+      "driverLocation": "https://raw.githubusercontent.com/jac459/meta-sonybravia/main/sonybravia.json",
+      "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-sonybravia/main/icon/bravia.jpg"
+    },  
+    {
       "name": "Volumio",
       "author": "JAC459",
-      "description": "Advanced Control of Volumio through socketIO.",
-      "version": 2,
+      "description": "Advanced Control of Volumio through socketIO. | Readme: github.com/jac459/meta-volumio",
+      "version": 55,
       "driverLocation": "https://raw.githubusercontent.com/jac459/meta-volumio/main/Volumio.json",
       "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-volumio/main/pics/Volumio.jpg"
     },
     {
       "name": "WebOS LGTV",
       "author": "JAC459",
-      "description": "Control your LG TV through websockets.",
-      "version": 2,
+      "description": "Control your LG TV through websockets. | Readme: github.com/jac459/meta-webosLGTV",
+      "version": 9,
       "driverLocation": "https://raw.githubusercontent.com/jac459/meta-webosLGTV/main/LGTV.json",
       "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-webosLGTV/main/pics/WebOS%20LG.jpg"
     },
     {
       "name": "Yamaha AVR",
       "author": "JAC459",
-      "description": "Full control of your Yamaha AVR.",
-      "version": 2,
+      "description": "Full control of your Yamaha AVR. | Readme: github.com/jac459/meta-yamahaAVR",
+      "version": 6,
       "driverLocation": "https://raw.githubusercontent.com/jac459/meta-yamahaAVR/main/yamaha.json",
       "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-yamahaAVR/main/pics/Yamaha.jpg"
     },
     {
       "name": "Yamaha MusicCast",
       "author": "MarkusM",
-      "description": "Full control of Yamaha AVRs and Musiccast",
-      "version": 2,
+      "description": "Full control of Yamaha AVRs and Musiccast. | Readme: github.com/jac459/yamaha-musiccast",
+      "version": 16,
       "driverLocation": "https://raw.githubusercontent.com/jac459/yamaha-musiccast/main/yamaha-musiccast.json",
       "iconLocation":   "https://raw.githubusercontent.com/jac459/yamaha-musiccast/main/icons/yamaha_mc.png"
     }   
