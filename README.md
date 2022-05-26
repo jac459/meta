@@ -1,4 +1,4 @@
-As I am working quite a lot on this driver nowadays, don't hesitate to supporte me to buy coffee. More coffees help me getting awake longer time and being more productive :-). \
+As I am working quite a lot on this driver nowadays, don't hesitate to support me to buy coffee. More coffees help me stay awake for a longer time and be more productive :-). \
 https://www.paypal.me/jac459
 
 # meta
