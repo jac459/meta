@@ -7,6 +7,8 @@ var settings =
   'runtimeName' : '.meta',
   'defaultPort' : '4016',
   'mqttClientId' : 'meta',
+  // 'mqttUsername' : 'username',
+  // 'mqttPassword' : 'password',
   'activeLibrary' : './active'
 }
   
