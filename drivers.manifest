@@ -156,7 +156,7 @@
       "name": "Yamaha MusicCast",
       "author": "MarkusM",
       "description": "Full control of Yamaha AVRs and Musiccast. | Readme: github.com/jac459/yamaha-musiccast",
-      "version": 16,
+      "version": 17,
       "driverLocation": "https://raw.githubusercontent.com/jac459/yamaha-musiccast/main/yamaha-musiccast.json",
       "iconLocation":   "https://raw.githubusercontent.com/jac459/yamaha-musiccast/main/icons/yamaha_mc.png"
     }   
