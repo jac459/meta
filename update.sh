@@ -11,7 +11,6 @@ wget https://raw.githubusercontent.com/jac459/meta/Release/meta.js -O meta.js
 wget https://raw.githubusercontent.com/jac459/meta/Release/metaController.js -O metaController.js
 wget https://raw.githubusercontent.com/jac459/meta/Release/metaMessage.js -O metaMessage.js
 wget https://raw.githubusercontent.com/jac459/meta/Release/package.json -O package.json
-wget https://raw.githubusercontent.com/jac459/meta/Release/package-lock.json -O package-lock.json
 wget https://raw.githubusercontent.com/jac459/meta/Release/sensorHelper.js -O sensorHelper.js
 wget https://raw.githubusercontent.com/jac459/meta/Release/sliderHelper.js -O sliderHelper.js
 wget https://raw.githubusercontent.com/jac459/meta/Release/switchHelper.js -O switchHelper.js
