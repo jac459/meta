@@ -194,6 +194,22 @@ Stop the meta process in pm2:
  pm2 stop meta
  ```
 
+## Tip on running meta with PM2 the safe way.
+The components used by meta are producing logs as part of their normal life.
+Logs are small file kept to indicate what happens.
+If you are using meta without issue (and you should), these logs can be annoying because they are writen on your disk and after a while (couple of years) may accelearate the wears and tears of your drive.
+In order to prevent that you should run PM2 without logs (once everything is working fine and you don't need to diagnostic anymore.
+In order to do that, commands are:
+```
+pm2 start mosquitto -o "/dev/null" -e "/dev/null"
+pm2 start node-red -o "/dev/null" -e "/dev/null"
+pm2 start meta -o "/dev/null" -e "/dev/null"
+```
+This will prevent any writting on the disk.
+Alternatively you can use the shell script I have create for myself "meta.sh"
+In order to run it, just type : bash meta.sh
+And you should be good.
+
 ## Releases
 ### v1.0.1 (current release)
 - Main drivers supported: 
