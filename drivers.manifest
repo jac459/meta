@@ -36,7 +36,7 @@
       "name": "enigma2",
       "author": "stonie2oo4",
       "description": "Control of your enigma2. | Readme: github.com/stonie2oo4/meta-enigma2",
-      "version": 7,
+      "version": 8,
       "driverLocation": "https://raw.githubusercontent.com/stonie2oo4/meta-enigma2/main/enigma2.json",
       "iconLocation":   "https://raw.githubusercontent.com/stonie2oo4/meta-enigma2/main/Icons/enigma2.jpg"
     },   
@@ -100,7 +100,7 @@
       "name": "Shelly 1 / 1PM / 1L",
       "author": "vistalba",
       "description": "Control your Shelly 1 / 1PM / 1L. | Readme: github.com/vistalba/meta-shelly-driver",
-      "version": 1,
+      "version": 2,
       "driverLocation": "https://raw.githubusercontent.com/vistalba/meta-shelly-driver/main/shelly-shsw-1-pm-l.json",
       "iconLocation":   "https://raw.githubusercontent.com/vistalba/meta-shelly-driver/main/icons/shelly.jpg"
     },
@@ -116,7 +116,7 @@
       "name": "Shelly 2.5 (Roller Shutter mode)",
       "author": "vistalba",
       "description": "Control your Shelly 2.5 (Roller Shutter mode). | Readme: github.com/vistalba/meta-shelly-driver",
-      "version": 1,
+      "version": 2,
       "driverLocation": "https://raw.githubusercontent.com/vistalba/meta-shelly-driver/main/shelly-shsw-25-roller.json",
       "iconLocation":   "https://raw.githubusercontent.com/vistalba/meta-shelly-driver/main/icons/shelly.jpg"
     },
