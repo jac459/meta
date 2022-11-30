@@ -76,7 +76,7 @@
       "name": "Naim",
       "author": "JAC459",
       "description": "Control your naim device. | Readme: github.com/jac459/meta-naim",
-      "version": 2,
+      "version": 3,
       "driverLocation": "https://raw.githubusercontent.com/jac459/meta-naim/main/naim.json",
       "iconLocation":   "https://raw.githubusercontent.com/jac459/meta-naim/main/naim.jpg"
     },
