@@ -44,7 +44,7 @@ class switchHelper {
           self.value = theValue;
           self.controller.commandProcessor("{\"topic\":\"" + settings.mqtt_topic + self.controller.name + "/" + deviceId + "/switch/" + self.name + "\",\"message\":\"" + theValue + "\", \"options\":\"{\\\"retain\\\":true}\"}", MQTT, deviceId)
           self.controller.sendComponentUpdate({ uniqueDeviceId: deviceId, component: self.name, value: theValue })
-          .then((result) => {metaLog({type:LOG_TYPE.VERBOSE, content:"Set performed, new value : " + theValue + " component " + self.controller.name + "/"+ self.name+"/"+deviceId, deviceId:deviceId})})
+          .then((result) => {metaLog({type:LOG_TYPE.VERBOSE, content:"Set performed, new value : " + theValue + " component " + self.controller.name + "/"+ self.name + " - " + JSON.stringify(result), deviceId:deviceId})})
           .catch((err) => {metaLog({type:LOG_TYPE.ERROR, content:"Error while trying to put the value : " + theValue+ " in this component : " + deviceId + " / " + self.name + " => " + err, deviceId:deviceId}); reject(err); });
          }
         controller.vault.writeVariable(variableListened, theValue, deviceId);

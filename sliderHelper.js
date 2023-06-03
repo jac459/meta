@@ -48,7 +48,7 @@ class sliderHelper {
           self.value = theValue;
           controller.commandProcessor("{\"topic\":\"" + settings.mqtt_topic + controller.name + "/" + deviceId + "/slider/" + self.name + "\",\"message\":\"" + theValue + "\", \"options\":\"{\\\"retain\\\":true}\"}", MQTT, deviceId)
           controller.sendComponentUpdate({ uniqueDeviceId: deviceId, component: self.name, value: theValue})
-          .then((result) => {metaLog({type:LOG_TYPE.VERBOSE, content:"set performed : new value : " + theValue + " component " + controller.name + "/"+ self.name+"/"+result, deviceId:deviceId})})
+          .then((result) => {metaLog({type:LOG_TYPE.VERBOSE, content:"set performed : new value : " + theValue + " component " + controller.name + "/"+ self.name + " - " + JSON.stringify(result), deviceId:deviceId})})
           .catch((err) => {metaLog({type:LOG_TYPE.ERROR, content:err, deviceId:deviceId}); reject(err); });
           controller.vault.writeVariable(variableListened, Math.round(theValue), deviceId);
           controller.evalDo(evaldo, Math.round(theValue), deviceId)
