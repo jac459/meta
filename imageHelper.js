@@ -8,6 +8,10 @@ function metaLog(message) {
   return metaMessage (myMessage);
 } 
 
+const MQTT = 'mqtt';
+const path = require('path');
+const settings = require(path.join(__dirname,'settings'));
+
 class imageHelper {
   constructor(deviceId, name, variableListened, controller) {
     this.name = name;
@@ -32,6 +36,22 @@ class imageHelper {
         resolve();
       });
     };
+
+    this.set = function (deviceId, theValue) {
+      return new Promise(function (resolve, reject) {
+        metaLog({type:LOG_TYPE.VERBOSE, content:"set to perform : new value : " + theValue + " component " + controller.name, deviceId:deviceId});
+        if (self.value != theValue) {
+          self.value = theValue;
+          controller.commandProcessor("{\"topic\":\"" + settings.mqtt_topic + controller.name + "/" + deviceId + "/image/" + self.name + "\",\"message\":\"" + theValue + "\", \"options\":\"{\\\"retain\\\":true}\"}", MQTT, deviceId)
+          controller.sendComponentUpdate({ uniqueDeviceId: deviceId, component: self.name, value: String(theValue)})
+          .then((result) => {metaLog({type:LOG_TYPE.VERBOSE, content:"set performed : new value : " + theValue + " component " + controller.name + "/" + self.name + " - " + JSON.stringify(result), deviceId:deviceId})})
+          .catch((err) => {metaLog({type:LOG_TYPE.ERROR, content:err, deviceId:deviceId}); reject(err); });
+          controller.vault.writeVariable(variableListened, theValue, deviceId);
+        }
+       resolve();
+      });
+    };
+
     this.initialise = function (deviceId) {
       metaLog({type:LOG_TYPE.VERBOSE, content:"Initialise imageHelper", deviceId:deviceId})
       self.controller.vault.addObserver(self.variableListened, self.update, deviceId, self.name);
