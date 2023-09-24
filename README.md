@@ -2,9 +2,9 @@ As I am working quite a lot on this driver nowadays, don't hesitate to supporte 
 https://www.paypal.me/jac459
 
 #### New in version 1.1:
-##### Fully redesigned Vault allowing any variable name in driver creation as well as overall faster response time for very complex drivers.
-##### Incorporation of Tom's library for lighting fast Android TV support.
-##### Minor bug corrections
+- Fully redesigned Vault allowing any variable name in driver creation as well as overall faster response time for very complex drivers.
+- Incorporation of Tom's library for lighting fast Android TV support.
+- Minor bug corrections
 
 # meta
 Drivers development and execution platform for neeo remote (metadriver reloaded)
