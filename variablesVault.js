@@ -6,7 +6,7 @@ const meta = require(path.join(__dirname,'meta'));
 const { networkInterfaces } = require('os');
 const nets = networkInterfaces();
 var metaIP = undefined; 
-
+var bs = require('binarysearch');
 
 //LOGGING SETUP AND WRAPPING
 //Disable the NEEO library console warning.
@@ -20,7 +20,17 @@ function metaLog(message) {
 
 metaLog({type:LOG_TYPE.FATAL, content:"New observer"});
 
-
+function varCompare(an, bn) {
+  let b= bn.name ;
+  let a= an.name ;
+ 
+    if (a.length>b.length) {return -1}
+    else if (a.length<b.length) {return 1}
+    else if (a.length==b.length) {
+        if (a>b) {return 1} else if (a==b) {return 0} else {return -1};
+    }
+    else throw new RangeError('Unstable comparison: ' + a + ' cmp ' + b)
+}
 function toInternalName(name, deviceId) {
   return (deviceId + INTERNALNAMESEPARATOR + name);
 }
@@ -79,8 +89,8 @@ class variablesVault {
     this.addVariable = function(name, value, deviceId, persisted) {
       let internalVariableName = toInternalName(name, deviceId);
       persisted = persisted || false;
-      if (self.variables.findIndex((elt) => {return elt.name == internalVariableName})<0) {//the variable is new
-        self.variables.push({'name':internalVariableName, 'value':value, 'observers': [], 'persisted':persisted});
+      if (bs(self.variables,  {'name':internalVariableName}, varCompare)<0) {//the variable is new
+        bs.insert(self.variables,{'name':internalVariableName, 'value':value, 'observers': [], 'persisted':persisted}, varCompare);
       }
       else {
         self.writeVariable(name, value, deviceId);
@@ -93,7 +103,7 @@ class variablesVault {
         let internalVariableName = toInternalName(name, deviceId);
         metaLog({type:LOG_TYPE.VERBOSE, content:"New observer for : " + internalVariableName, deviceId:deviceId});
         if (name != undefined && name != '' && theFunction != undefined && theFunction) {
-          let observersList = self.variables.find(elt => {return elt.name == internalVariableName}).observers; 
+          let observersList = self.variables[bs(self.variables, {'name':internalVariableName}, varCompare)].observers; 
           if (observersList.findIndex(func => {return (func.observer == componentRegistering)}) < 0) {//to avoid adding multiple times an oberver
             observersList.push({"observer":componentRegistering, "theFunction": theFunction});
             metaLog({type:LOG_TYPE.VERBOSE, content:"New observer : " + componentRegistering + " " + name, deviceId:deviceId});
@@ -108,7 +118,7 @@ class variablesVault {
 
     this.getValue = function(name, deviceId) {
       let internalVariableName = toInternalName(name, deviceId);
-      let indexRes = self.variables.findIndex(elt => {return elt.name == internalVariableName});
+      let indexRes = bs(self.variables, {'name':internalVariableName}, varCompare);
       if (indexRes<0) {
         return undefined
       } 
@@ -120,7 +130,7 @@ class variablesVault {
     this.writeVariable = function(name, value, deviceId) {//deviceId necessary as push to components.
       metaLog({type:LOG_TYPE.VERBOSE, content:"Writing in variable: " + name + " value: " + value,deviceId:deviceId});
       let internalVariableName = toInternalName(name, deviceId);
-      let foundVar = self.variables.find(elt => {return elt.name == internalVariableName});
+      let foundVar = self.variables[bs(self.variables,  {'name':internalVariableName}, varCompare)];
       if (!foundVar) {
         metaLog({type:LOG_TYPE.WARNING, content:"The variable you are requesting doesn\'t seems to be properly declared: " + name,deviceId:deviceId});
       }
@@ -222,7 +232,7 @@ class variablesVault {
             self.variables.forEach((varI) => {
               if (varI.persisted) {
                 metaLog({type:LOG_TYPE.VERBOSE, content:"Saving inside the datastore : " + {"name":varI.name, "value":varI.value}});
-                tempDS.push({"name":varI.name, "value":varI.value})
+                bs.insert(tempDS,{"name":varI.name, "value":varI.value},varCompare)
               }
             });
           fs.writeFile(self.dataStore, JSON.stringify(tempDS), err => {

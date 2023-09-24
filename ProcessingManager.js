@@ -1,6 +1,11 @@
+const path = require('path'); 
+const CertificateGenerator = require (path.join(__dirname,"lib/certificate/CertificateGenerator.js")).CertificateGenerator;
+const PairingManager = require (path.join(__dirname,"lib/pairing/PairingManager.js")).PairingManager;
+const RemoteManager = require (path.join(__dirname,"lib/remote/RemoteManager.js")).RemoteManager;
+const AndroidRemote = require (path.join(__dirname,"lib//AndroidRemote.js")).AndroidRemote;
+
 const { exec } = require("child_process");
 const xpath = require('xpath');
-const path = require('path');
 const http = require('http.min');
 const { JSONPath } = require ('jsonpath-plus');
 const io = require('socket.io-client');
@@ -418,6 +423,181 @@ class socketIOProcessor {
   }
 }
 exports.socketIOProcessor = socketIOProcessor;
+
+class androidProcessor {
+  initiate(connection) {
+    return new Promise(function (resolve, reject) {
+      resolve();
+    });
+  }
+  process(params) {
+    return new Promise(function (resolve, reject) {
+      if (typeof (params.command) == 'string') { params.command = JSON.parse(params.command); }
+      if (params.command.register) {
+        metaLog({type:LOG_TYPE.INFO, content:"REGISTERING " + params.command.message});
+        params.connection.connector.pairingManager.sendCode(params.command.message);
+      }
+      else {
+        metaLog({type:LOG_TYPE.INFO, content:"Sending command:"});
+        metaLog({type:LOG_TYPE.INFO, content:params.command});
+        if (params.command.remoteKeyCode && params.command.remoteDirection) {
+          if (params.connection.connector.remoteManager.client._readableState) {
+            if (!params.connection.connector.remoteManager.client._readableState.closed)
+            params.connection.connector.remoteManager.sendKey(params.command.remoteKeyCode, params.command.remoteDirection);
+            else {
+              params.connection.connector.remoteManager.start();
+            }
+          }
+        }
+        else if (params.command.appLink) {
+          let result = params.connection.connector.remoteManager.sendAppLink(params.command.appLink);
+          metaLog({type:LOG_TYPE.WARNING, content:"Sent command with result: " + result})
+        }
+      }
+      resolve();
+    });
+  }
+  query(params) {
+    return new Promise(function (resolve, reject) {
+      try {
+        if (params.query) {
+          metaLog({type:LOG_TYPE.WARNING, content:params});
+          metaLog({type:LOG_TYPE.WARNING, content:JSONPath(params.query, params.data)});
+          resolve(JSONPath(params.query, params.data));
+        }
+        else {
+          resolve(params.data);
+        }
+      }
+      catch (err) {
+        metaLog({type:LOG_TYPE.ERROR, content:err});
+        resolve('');
+      }
+    });
+  }
+  
+  startListen(params, deviceId) {
+    return new Promise(function (resolve, reject) {
+      try {
+        if (!params.connection) {params.connection = {}}
+        if (typeof (params.command) == 'string') { params.command = JSON.parse(params.command); }
+        metaLog({type:LOG_TYPE.INFO, content:'Starting to listen with this params:'});
+        metaLog({type:LOG_TYPE.INFO, content:params.command});
+        let cert = CertificateGenerator.generateFull(
+          "Neeo-meta",
+          'CNT',
+          'ST',
+          'LOC',
+          'O',
+          'OU'
+        );
+        let options = {
+          pairing_port : 6467,
+          remote_port : 6466,
+          name : 'androidtv-remote',
+          cert: cert
+        }
+        if (params.command.certificate) {
+          metaLog({type:LOG_TYPE.INFO, content:params.command.certificate});
+          if (JSON.parse(params.command.certificate).key && JSON.parse(params.command.certificate).cert) {
+            params.connection.connector.remoteManager  = new RemoteManager(params.command.connection, options.remote_port, JSON.parse(params.command.certificate))
+            params.connection.connector.remoteManager.start().then ((result) => {
+              metaLog({type:LOG_TYPE.INFO, content:'Android Connected'});
+              params.connection.connector.remoteManager.on('powered', (powered) => {
+                metaLog({type:LOG_TYPE.INFO, content:powered});  
+                params._listenCallback("{\"message\":" + JSON.stringify(result) + "}", params.listener, deviceId);;              
+
+              });
+              params.connection.connector.remoteManager.on('volume', (volume) => {
+                metaLog({type:LOG_TYPE.INFO, content:"volume"});  
+                metaLog({type:LOG_TYPE.INFO, content:volume});  
+                params._listenCallback("{\"message\":" + JSON.stringify(volume) + "}", params.listener, deviceId);;              
+              });
+              params.connection.connector.remoteManager.on('current_app', (current_app) => {
+                metaLog({type:LOG_TYPE.INFO, content:current_app});  
+                params._listenCallback("{\"message\":" + JSON.stringify(current_app) + "}", params.listener, deviceId);;              
+              });
+              params.connection.connector.remoteManager.on('ready', (ready) => {
+                metaLog({type:LOG_TYPE.INFO, content:"ready"});  
+                metaLog({type:LOG_TYPE.INFO, content:ready});  
+                params._listenCallback("{\"message\":" + JSON.stringify(ready) + "}", params.listener, deviceId);              
+              });
+              params.connection.connector.remoteManager.on('error', (error) => {
+                metaLog({type:LOG_TYPE.WARNING, content:"error"});  
+                metaLog({type:LOG_TYPE.WARNING, content:error});  
+                params._listenCallback("{\"message\":" + JSON.stringify(error) + "}", params.listener, deviceId); 
+                params.connection.connector.remoteManager.start();           
+              });
+              params.connection.connector.remoteManager.on('close', (message) => {
+                metaLog({type:LOG_TYPE.WARNING, content:"close"});  
+                metaLog({type:LOG_TYPE.WARNING, content:message});  
+                params._listenCallback("{\"message\":" + JSON.stringify(message) + "}", params.listener, deviceId); 
+                params.connection.connector.remoteManager.start();           
+              });
+              params._listenCallback("{\"message\":" + result + "}", params.listener, deviceId);;              
+              resolve();
+            })
+          }
+        }
+        else {
+          params.connection.connector.pairingManager = new PairingManager(params.command.connection, options.pairing_port, options.cert, options.name)
+          params.connection.connector.pairingManager.start().then ((result)=> {
+            metaLog({type:LOG_TYPE.INFO, content:'PAIRING STARTED'});
+            metaLog({type:LOG_TYPE.INFO, content:result});
+            metaLog({type:LOG_TYPE.INFO, content: options.cert});
+            params._listenCallback("{\"key\":"+JSON.stringify(options.cert)+"}", params.listener, deviceId);;  
+          })
+          .catch(function (error) {
+            metaLog({type:LOG_TYPE.ERROR, content:error});
+          });
+          resolve();
+        }        
+      }
+      catch (err) {
+        metaLog({type:LOG_TYPE.ERROR, content:'Error with listener configuration.'});
+        metaLog({type:LOG_TYPE.ERROR, content:err});
+        resolve('');
+      }
+
+    });
+  }
+  stopListen(params) {
+  }
+
+  wrapUp(connection) { 
+    return new Promise(function (resolve, reject) {
+      try {
+        metaLog({type:LOG_TYPE.VERBOSE, content:' WrapUp Android'});
+        if (connection.connector.remoteManager != undefined) {
+          connection.connector.remoteManager.stop().then (
+              (result) => {
+                metaLog({type:LOG_TYPE.VERBOSE, content:'Closing the communication with Android.'});
+                metaLog({type:LOG_TYPE.VERBOSE, content:result}); 
+  
+              })
+  
+        }
+        if (connection.connector.pairingManager != undefined) {
+          connection.connector.pairingManager.stop().then (
+              (result) => {
+                metaLog({type:LOG_TYPE.VERBOSE, content:'Closing the communication with Android.'});
+                metaLog({type:LOG_TYPE.VERBOSE, content:result}); 
+  
+              })
+              connection.connector = undefined;
+        }
+        resolve();
+      }
+      catch (err) {
+        metaLog({type:LOG_TYPE.ERROR, content:'Error will releasing android connection.'});
+        metaLog({type:LOG_TYPE.ERROR, content:err});
+        resolve('');
+      }    
+   })
+  }
+}
+exports.androidProcessor = androidProcessor;
+
 
 class webSocketProcessor {
   initiate() {
@@ -993,7 +1173,7 @@ class mqttProcessor {
       if (typeof params.command === 'string') {params.command = JSON.parse(params.command);}
       if (params.command.message) {// here we publish into a topic
         if (typeof params.command.message === 'object') {params.command.message = JSON.stringify(params.command.message);}
-        metaLog({type:LOG_TYPE.VERBOSE, content:'MQTT publishing ' + params.command.message + ' to ' + params.command.topic + ' with options : ' + params.command.options});
+        metaLog({type:LOG_TYPE.VERBOSE, content:'MQTT publishing ' + params.command.message + ' to ' + params.command.topic + ' with options : ' + (params.command.options ? JSON.parse(params.command.options) : "")});
         try {
           params.connection.connector.publish(params.command.topic, params.command.message, (params.command.options ? JSON.parse(params.command.options) : ""), (err) => {
             if (err) {

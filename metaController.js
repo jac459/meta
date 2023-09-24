@@ -26,7 +26,8 @@ const JSONTCP = 'jsontcp';
 const MQTT = 'mqtt';
 const WOL = 'wol';
 const MDNS = 'mDNS';
-const { ProcessingManager, httpgetProcessor, httprestProcessor, httpgetSoapProcessor, httppostProcessor, cliProcessor, staticProcessor, webSocketProcessor, jsontcpProcessor, mqttProcessor, socketIOProcessor, mDNSProcessor, wolProcessor, replProcessor } = require('./ProcessingManager');
+const ANDROID = 'android';
+const { ProcessingManager, httpgetProcessor, httprestProcessor, httpgetSoapProcessor, httppostProcessor, cliProcessor, staticProcessor, webSocketProcessor, jsontcpProcessor, mqttProcessor, socketIOProcessor, mDNSProcessor, androidProcessor, wolProcessor, replProcessor } = require('./ProcessingManager');
 const { metaMessage, LOG_TYPE } = require("./metaMessage");
 
 const processingManager = new ProcessingManager();
@@ -43,6 +44,7 @@ const myMqttProcessor = new mqttProcessor();
 const myReplProcessor = new replProcessor();
 const myHttprestProcessor = new httprestProcessor();
 const myMDNSProcessor = new mDNSProcessor();
+const myAndroidProcessor = new androidProcessor();
 
 //LOGGING SETUP AND WRAPPING
 //Disable the NEEO library console warning.
@@ -340,6 +342,9 @@ module.exports = function controller(driver) {
     else if (commandtype == MDNS) {
       processingManager.processor = myMDNSProcessor;
     }
+    else if (commandtype == ANDROID) {
+      processingManager.processor = myAndroidProcessor;
+    }
     else if (commandtype == JSONTCP) {
       processingManager.processor = myJsontcpProcessor;
     }
@@ -585,6 +590,7 @@ module.exports = function controller(driver) {
           self.actionManager(deviceId, theButton.type, theButton.command, theButton.queryresult, theButton.evaldo, theButton.evalwrite)
           .then(()=>{
             metaLog({type:LOG_TYPE.VERBOSE, content:'Button Action Done.', deviceId:deviceId});
+            metaLog({type:LOG_TYPE.VERBOSE, content:theButton, deviceId:deviceId});
             resolve('Action done.');
           })
           .catch((err) => { 
