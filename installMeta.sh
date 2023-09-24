@@ -5,10 +5,9 @@ echo "Hello, this setup program will install meta in your raspberry pi 4"
 echo "*** STEP 0 - Refresh your system with latest libraries ***"
 sudo apt-get update
 sudo apt-get upgrade
-echo "*** STEP 1 - Install meta's best friend : node.js ***"
-curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
-sudo apt install -y nodejs
-echo "*** STEP 2 - Install node.js best friend: npm (friends of our friends are our friends) and git ***"
+echo "*** STEP 1 - Install meta's best friend : node.js and npm ***"
+sudo apt install -y nodejs npm
+echo "*** STEP 2 - Install node.js 2nd best friend: git ***"
 sudo apt install -y npm
 sudo apt install git
 echo "*** STEP 3 - Make your Raspberry a communication Champion with mosquitto, the best MQTT broker to communicate with your devices and hubs ***"
