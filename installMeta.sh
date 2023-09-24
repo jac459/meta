@@ -6,7 +6,6 @@ echo "*** STEP 0 - Refresh your system with latest libraries ***"
 sudo apt-get update
 sudo apt-get upgrade
 echo "*** STEP 1 - Install meta's best friend : node.js and npm ***"
-sudo apt-get update
 sudo apt-get install -y ca-certificates curl gnupg
 sudo mkdir -p /etc/apt/keyrings
 curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
