@@ -16,4 +16,11 @@ wget https://raw.githubusercontent.com/jac459/meta/Release/sliderHelper.js -O sl
 wget https://raw.githubusercontent.com/jac459/meta/Release/switchHelper.js -O switchHelper.js
 wget https://raw.githubusercontent.com/jac459/meta/Release/variablesVault.js -O variablesVault.js
 wget https://raw.githubusercontent.com/jac459/meta-core/main/metaCore.json -O ./active/metaCore.json
+wget -x -nH --cut-dirs=3 https://raw.githubusercontent.com/jac459/meta/Release/lib/certificate/CertificateGenerator.js
+wget -x -nH --cut-dirs=3 https://raw.githubusercontent.com/jac459/meta/Release/lib/pairing/PairingManager.js
+wget -x -nH --cut-dirs=3 https://raw.githubusercontent.com/jac459/meta/Release/lib/pairing/PairingMessageManager.js
+wget -x -nH --cut-dirs=3 https://raw.githubusercontent.com/jac459/meta/Release/lib/pairing/pairingmessage.proto
+wget -x -nH --cut-dirs=3 https://raw.githubusercontent.com/jac459/meta/Release/lib/remote/RemoteManager.js
+wget -x -nH --cut-dirs=3 https://raw.githubusercontent.com/jac459/meta/Release/lib/remote/RemoteMessageManager.js
+wget -x -nH --cut-dirs=3 https://raw.githubusercontent.com/jac459/meta/Release/lib/remote/remotemessage.proto
 npm install
