@@ -23,4 +23,5 @@ wget -x -nH --cut-dirs=3 https://raw.githubusercontent.com/jac459/meta/Release/l
 wget -x -nH --cut-dirs=3 https://raw.githubusercontent.com/jac459/meta/Release/lib/remote/RemoteManager.js
 wget -x -nH --cut-dirs=3 https://raw.githubusercontent.com/jac459/meta/Release/lib/remote/RemoteMessageManager.js
 wget -x -nH --cut-dirs=3 https://raw.githubusercontent.com/jac459/meta/Release/lib/remote/remotemessage.proto
+wget -x -nH --cut-dirs=3 https://raw.githubusercontent.com/jac459/meta/Release/lib/AndroidRemote.js
 npm install
