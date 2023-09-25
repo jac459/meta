@@ -5,10 +5,15 @@ echo "Hello, this setup program will install meta in your raspberry pi 4"
 echo "*** STEP 0 - Refresh your system with latest libraries ***"
 sudo apt-get update
 sudo apt-get upgrade
-echo "*** STEP 1 - Install meta's best friend : node.js ***"
-curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
-sudo apt install -y nodejs
-echo "*** STEP 2 - Install node.js best friend: npm (friends of our friends are our friends) and git ***"
+echo "*** STEP 1 - Install meta's best friend : node.js and npm ***"
+sudo apt-get install -y ca-certificates curl gnupg
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+NODE_MAJOR=20
+echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+sudo apt-get update
+sudo apt-get install nodejs -y
+echo "*** STEP 2 - Install node.js 2nd best friend: git ***"
 sudo apt install -y npm
 sudo apt install git
 echo "*** STEP 3 - Make your Raspberry a communication Champion with mosquitto, the best MQTT broker to communicate with your devices and hubs ***"
@@ -32,6 +37,3 @@ pm2 start node-red
 pm2 start meta.js
 pm2 save
 cd ..
-echo "*** STEP 7 - Creating the startup scripts, you should see the meta in your neeo now ***"
-sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u pi --hp /home/pi
-echo "*** STEP 8 - The command that just ran is highly dependant of your environment (should be raspberry with pi user name), if you have an error, just type pm2 startup in your command line and follow the instructions. This will allow meta to run at startup. ***"
