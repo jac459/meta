@@ -1,6 +1,6 @@
 {
   "name": "meta",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "description": ".meta, neeo RAD platform",
   "main": "meta.js",
   "scripts": {
@@ -21,6 +21,8 @@
   },
   "homepage": "https://github.com/jac459/meta#readme",
   "dependencies": {
+    "androidtv-remote": "1.0.0",
+    "binarysearch": "^1.0.1",
     "got": "^11.8.2",
     "http.min": "^2.1.0",
     "json-rpc2": "^2.0.0",
@@ -34,7 +36,6 @@
     "wol": "^1.0.7",
     "ws": "^7.5.0",
     "xml2js": "^0.4.23",
-    "xpath": "0.0.32",
-    "androidtv-remote":"1.0.0"
+    "xpath": "0.0.32"
   }
 }
