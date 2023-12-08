@@ -691,7 +691,7 @@ class webSocketProcessor {
           let connectionIndex = params.connection.connections.findIndex((con)=> {return con.descriptor == params.command.connection});
             try {
             if (connectionIndex<0) {
-              let connector = new WebSocket(params.command.connection);
+              let connector = new WebSocket(params.command.connection, {rejectUnauthorized: false});
               params.connection.connections.push({"descriptor": params.command.connection, "connector": connector});
               connectionIndex = params.connection.connections.length - 1;
             }
@@ -703,7 +703,7 @@ class webSocketProcessor {
                 catch (err) {
                   metaLog({type:LOG_TYPE.VERBOSE, content:'Disposing unused socket.'});
                 }  
-                params.connection.connections[connectionIndex].connector = new WebSocket(params.command.connection);;
+                params.connection.connections[connectionIndex].connector = new WebSocket(params.command.connection, {rejectUnauthorized: false});;
               }
               else {
                 resolve();
