@@ -100,7 +100,7 @@ bash <(wget -qO- https://raw.githubusercontent.com/jac459/meta/Release/update.sh
 ## C - How to install meta if You are a Raspberry/Linux Black Belt
 - The meta can be installed like any node.js program by taking the files and typing "npm install".
 - The meta NEEDS MQTT to run. NODE-RED is highly advised.
-- MQTT is expected to not have any authentication.
+- By default, MQTT is expected to not have any authentication. You can connect to a local MQTT host with authentication by setting the username and password in settings.js (uncomment the specific lines).
 - Meta-core driver expect node-red, mqtt and meta to by run by pm2. Not by services. This is not a big deal if you don't plan to use it.
 - The meta expect 2 folders: library (for all drivers) and active (for activated drivers).
 - You can configure the name, port of the meta in order to run multiple instances of the meta (have different names and port for the neeo). This is very useful if you want to run a new version of the meta without taking risk on your previous version.
