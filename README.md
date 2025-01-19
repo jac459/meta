@@ -9,8 +9,9 @@ https://www.paypal.me/jac459
 # meta
 Drivers development and execution platform for neeo remote (metadriver reloaded)
 You can join the community.. \
-..on Discord: https://discord.gg/3nuUZwXVXA \
-..or on Telegram (backup): https://t.me/joinchat/NocMDU9RCVP9hSCJxPsCEg
+..on Telegram: https://t.me/joinchat/NocMDU9RCVP9hSCJxPsCEg
+(be careful, Discord: https://discord.gg/3nuUZwXVXA is deprecated)
+
  
 #### Some driver examples:
 ##### Roon Driver (control your roon music/zones/outputs)
