@@ -28,6 +28,9 @@ Instructions: https://github.com/jac459/meta-volumio
 ##### Yamaha AVR
 Instructions: https://github.com/jac459/meta-yamahaAVR
 
+#### LG TV (WebOS)
+Demo: https://youtube.com/shorts/bFfYumE51Mg?si=zfeqBAVtgFWhYegb
+
 ## A - How to install meta on a pre configured system
 Use this command to start a script that will install the meta in your system (for example raspberry PI):
 ```
