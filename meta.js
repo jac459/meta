@@ -114,7 +114,7 @@ function networkDiscovery() {
           }
         
         if (localDevices.findIndex((device)=>{return (device.name == myName && device.ip == myIP&& device.port == myPort &&device.mac == myMac)})<0) {
-          if (myIP!=undefined && myIP.startsWith("192")) {
+          if (myIP!=undefined && /^10\.|^192\.168\.|^172\.(1[6-9]|2\d|3[01])\./.test(myIP) ) {
             find(myIP).then(device => {
               if (device) {myMac = device.mac;};
               indport = localDevices.findIndex((device)=>{return (device.name == myName && device.ip == myIP&&device.mac == myMac)});//avoid device with too many ports
