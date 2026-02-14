@@ -942,7 +942,12 @@ if (process.argv.length>2) {
 
 getConfig().then(() => {
     networkDiscovery();
-    mqttClient = mqtt.connect('mqtt://' + settings.mqtt, {clientId:settings.mqttClientId}); // Always connect to the local mqtt broker
+    var options = {
+      clientId: settings.mqttClientId,
+      username: settings.mqttUsername,
+      password: settings.mqttPassword
+    }
+    mqttClient = mqtt.connect('mqtt://' + settings.mqtt, options); // Always connect to the local mqtt broker
     mqttClient.setMaxListeners(0); //CAREFULL OF MEMORY LEAKS HERE.
     mqttClient.on('connect', () => {
       metaLog({type:LOG_TYPE.WARNING, content:"Connection to MQTT Broker Successful."});
